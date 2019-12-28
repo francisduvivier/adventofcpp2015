@@ -32,7 +32,7 @@ int main() {
     std::string line;
     std::string allLines = "";
     int nbLines = 0;
-    std::ifstream myfile("input.txt");
+    std::ifstream myfile("day1/input.txt");
     if (myfile.is_open()) {
         while (getline(myfile, line)) {
             allLines += line;
