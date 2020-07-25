@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "processing.h"
 using namespace std;
 
 string getInput(int day)

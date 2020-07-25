@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../util/processing.cpp"
+#include "../util/processing.h"
 
 
 static const int MAX_SIZE = 1000;
