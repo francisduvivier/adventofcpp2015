@@ -11,6 +11,8 @@
                 "${workspaceFolder}/util/*.cpp",
                 "-g",
                 "${workspaceFolder}/util/*.h",
+                "-lssl",
+                "-lcrypto",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
             ],
