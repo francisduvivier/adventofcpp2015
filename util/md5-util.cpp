@@ -17,7 +17,7 @@ unsigned char *getMd5(string toHash)
 string stringToHex(unsigned char *input, int inputLength)
 {
     stringstream result;
-    for (int i; i < inputLength; i++)
+    for (int i = 0; i < inputLength; i++)
     {
         result << setfill('0') << std::setw(2) << std::hex << (int)input[i];
     }
