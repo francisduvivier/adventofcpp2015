@@ -6,12 +6,12 @@ using namespace std;
 string puzzleInput = "ckczppom";
 bool has5LeadingZeros(string digest)
 {
-    return digest.rfind("00000", 0) == 0;
+    return digest.find("00000", 0) == 0;
 }
 
 bool has6LeadingZeros(string digest)
 {
-    return digest.rfind("000000", 0) == 0;
+    return digest.find("000000", 0) == 0;
 }
 
 int main()
