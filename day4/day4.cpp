@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include "../util/md5-util.h"
+#include "md5-util.h"
 
 using namespace std;
 string puzzleInput = "ckczppom";
