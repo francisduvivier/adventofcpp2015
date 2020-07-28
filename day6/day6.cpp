@@ -78,7 +78,7 @@ void readInstructions(vector<string> rawLines, vector<instruction> &instructions
     }
 }
 const int GRID_SIZE_X = 1000, GRID_SIZE_Y = 1000;
-void doInstruction(bool lightGrid[GRID_SIZE_X][GRID_SIZE_Y], instruction instruct)
+void doBoolInstruction(bool lightGrid[GRID_SIZE_X][GRID_SIZE_Y], instruction instruct)
 {
     for (int x = instruct.lightRange.start.x; x <= instruct.lightRange.end.x; x++)
     {
@@ -116,6 +116,66 @@ int countLights(bool lightGrid[GRID_SIZE_X][GRID_SIZE_Y], bool searchVal)
     }
     return numberOfMatches;
 }
+void doIntInstruction(int lightGrid[GRID_SIZE_X][GRID_SIZE_Y], instruction instruct)
+{
+    for (int x = instruct.lightRange.start.x; x <= instruct.lightRange.end.x; x++)
+    {
+        for (int y = instruct.lightRange.start.y; y <= instruct.lightRange.end.y; y++)
+        {
+
+            switch (instruct.opCode)
+            {
+            case TOGGLE:
+                lightGrid[x][y] += 2;
+                break;
+            case TURN_ON:
+                lightGrid[x][y] += 1;
+                break;
+            case TURN_OFF:
+                // Brightness can not go below 0
+                if (lightGrid[x][y] > 0)
+                {
+                    lightGrid[x][y] -= 1;
+                }
+                break;
+            }
+        }
+    }
+}
+
+int countBrightness(int lightGrid[GRID_SIZE_X][GRID_SIZE_Y])
+{
+    int totalBrightness = 0;
+    for (int x = 0; x < GRID_SIZE_X; x++)
+    {
+        for (int y = 0; y < GRID_SIZE_Y; y++)
+        {
+            totalBrightness += lightGrid[x][y];
+        }
+    }
+    return totalBrightness;
+}
+void doPart1(vector<instruction> instructions)
+{
+    bool lightGrid[GRID_SIZE_X][GRID_SIZE_Y] = {};
+    for (int i = 0; i < instructions.size(); i++)
+    {
+        doBoolInstruction(lightGrid, instructions[i]);
+    }
+    int numberTurnedOn = countLights(lightGrid, 1);
+    cout << "Part 1 solution is < " << numberTurnedOn << " >\n";
+}
+void doPart2(vector<instruction> instructions)
+{
+    int lightGrid[GRID_SIZE_X][GRID_SIZE_Y] = {};
+    for (int i = 0; i < instructions.size(); i++)
+    {
+        doIntInstruction(lightGrid, instructions[i]);
+    }
+    int totalBrightness = countBrightness(lightGrid);
+    cout << "Part 2 solution is < " << totalBrightness << " >\n";
+}
+
 int main()
 {
     string input = getInput(6);
@@ -123,12 +183,6 @@ int main()
     splitString(input, "\n", lines);
     vector<instruction> instructions;
     readInstructions(lines, instructions);
-    bool lightGrid[GRID_SIZE_X][GRID_SIZE_Y] = {};
-    for (int i = 0; i < instructions.size(); i++)
-    {
-        doInstruction(lightGrid, instructions[i]);
-    }
-    int numberTurnedOn = countLights(lightGrid, 1);
-    cout << "Part 1 solution is < " << numberTurnedOn << " >\n";
-    return 0;
+    doPart1(instructions);
+    doPart2(instructions);
 }
