@@ -1,19 +1,17 @@
 #include <string>
 #include <regex>
+#include <map>
 #include <iostream>
 #include "../util/processing.h"
 const bool DEBUG_V = false;
-// const bool DEBUG_V = true;
 using namespace std;
-struct State
-{
-};
 struct Instruction
 {
     int opCode;
     vector<string> args;
     string destination;
 };
+using InstructionMap = map<string, Instruction>;
 const int NOT = 0, AND = 1, RSHIFT = 2, LSHIFT = 3, ASSIGN = 5;
 const vector<string> opnames = {
     "NOT",    //0
@@ -63,39 +61,46 @@ void parseInstruction(string rawInstruction, Instruction *instructPointer)
     }
 }
 
-void readInstructions(vector<string> rawLines, vector<Instruction> &instructions)
+void saveInstruction(Instruction instruct, InstructionMap &instructionMap)
+{
+    instructionMap.insert(pair<string, Instruction>(instruct.destination, instruct));
+    if (DEBUG_V)
+    {
+        cout << "inserting [" << instruct.destination << "]\n";
+    }
+}
+void readInstructions(vector<string> rawLines, InstructionMap &instructions)
 {
     for (int i = 0; i < rawLines.size(); i++)
     {
         Instruction current;
         parseInstruction(rawLines[i], &current);
-        instructions.push_back(current);
+        saveInstruction(current, instructions);
     }
 }
 
-void doInstruction(State currState, Instruction instruct)
+int calcValueRec(string wire, InstructionMap &instructionMap)
 {
-    switch (instruct.opCode)
+    auto result = instructionMap.find(wire);
+    if (result == instructionMap.end())
     {
-    case NOT:
-        break;
+        cout << "wire [" << wire << "] was end!\n";
+        cout << "instructionMap size [" << instructionMap.size() << "\n";
+        throw "No instruction found with given destination";
     }
+    auto instruct = result->second;
+    cout << "instruct.opCode [" << instruct.opCode << "]\n";
+    return 0;
 }
-
-int calcPart1Solution(State currState)
+int calcPart1Solution(InstructionMap &instructions)
 {
-    int solution = 0;
+    int solution = calcValueRec("a", instructions);
     return solution;
 }
 
-void doPart1(vector<Instruction> instructions)
+void doPart1(InstructionMap &instructions)
 {
-    State state;
-    for (int i = 0; i < instructions.size(); i++)
-    {
-        doInstruction(state, instructions[i]);
-    }
-    int part1Solution = calcPart1Solution(state);
+    int part1Solution = calcPart1Solution(instructions);
     cout << "Part 1 solution is < " << part1Solution << " >\n";
 }
 
@@ -104,7 +109,7 @@ int main()
     string input = getInput(7);
     vector<string> lines;
     splitString(input, "\n", lines);
-    vector<Instruction> instructions;
+    InstructionMap instructions;
     readInstructions(lines, instructions);
     doPart1(instructions);
 }
