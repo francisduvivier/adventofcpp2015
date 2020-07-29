@@ -12,7 +12,7 @@ struct Instruction
     string destination;
 };
 using InstructionMap = map<string, Instruction>;
-const int NOT = 0, AND = 1, RSHIFT = 2, LSHIFT = 3, ASSIGN = 5;
+const int NOT = 0, AND = 1, RSHIFT = 2, LSHIFT = 3, OR = 4, ASSIGN = 5;
 const vector<string> opnames = {
     "NOT",    //0
     "AND",    //1
