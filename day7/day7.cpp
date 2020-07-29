@@ -174,11 +174,14 @@ int calcPart1Solution(InstructionMap &instructions)
     int solution = calcValueRec("a", instructions);
     return solution;
 }
-
-void doPart1(InstructionMap &instructions)
+int calcPart2Solution(InstructionMap &instructions, unsigned short bVal)
 {
-    int part1Solution = calcPart1Solution(instructions);
-    cout << "Part 1 solution is < " << part1Solution << " >\n";
+    auto result = instructions.find("b");
+    Instruction &instruct = result->second;
+    instruct.isCached = true;
+    instruct.cachedVal = bVal;
+    int solution = calcValueRec("a", instructions);
+    return solution;
 }
 
 int main()
@@ -188,5 +191,10 @@ int main()
     splitString(input, "\n", lines);
     InstructionMap instructions;
     readInstructions(lines, instructions);
-    doPart1(instructions);
+    int part1Solution = calcPart1Solution(instructions);
+    cout << "Part 1 solution is < " << part1Solution << " >\n";
+    InstructionMap instructions2;
+    readInstructions(lines, instructions2);
+    int part2Solution = calcPart2Solution(instructions2, part1Solution);
+    cout << "Part 2 solution is < " << part2Solution << " >\n";
 }
