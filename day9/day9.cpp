@@ -165,4 +165,16 @@ int main()
     Path shortestPath = findShortestPath(distanceMap);
     int pathLength = calcLength(shortestPath);
     cout << "Part 1 solution is [" << pathLength << "]\n";
+    for (auto iter = distanceMap.begin(); iter != distanceMap.end(); ++iter)
+    {
+        map<string, int> &distances = iter->second;
+        for (auto iter2 = distances.begin(); iter2 != distances.end(); ++iter2)
+        {
+            int &value = iter2->second;
+            value *= -1;
+        }
+    }
+    Path shortestPath2 = findShortestPath(distanceMap);
+    int pathLength2 = calcLength(shortestPath2);
+    cout << "Part 2 solution is [" << -pathLength2 << "]\n";
 }
