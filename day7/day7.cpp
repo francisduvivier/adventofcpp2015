@@ -10,6 +10,8 @@ struct Instruction
     int opCode;
     vector<string> args;
     string destination;
+    bool isCached;
+    unsigned short cachedVal;
 };
 using InstructionMap = map<string, Instruction>;
 const int NOT = 0, AND = 1, RSHIFT = 2, LSHIFT = 3, OR = 4, ASSIGN = 5;
@@ -39,9 +41,18 @@ void parseInstruction(string rawInstruction, Instruction *instructPointer)
 {
     int iOpCode = getOpName(rawInstruction);
     instructPointer->opCode = iOpCode;
+    instructPointer->isCached = false;
     string opName = opnames[iOpCode];
+
     regex re;
-    re = "([0-9a-z]+)? ?" + opName + " ?([0-9a-z]+) -> ([a-z]+)";
+    if (iOpCode == ASSIGN)
+    {
+        re = "([0-9a-z]+) -> ([a-z]+)";
+    }
+    else
+    {
+        re = "([0-9a-z]+)? ?" + opName + " ([0-9a-z]+) -> ([a-z]+)";
+    }
     cmatch matchGroups;
     bool foundMatch = regex_match(rawInstruction.c_str(), matchGroups, re);
     if (!foundMatch)
@@ -53,11 +64,14 @@ void parseInstruction(string rawInstruction, Instruction *instructPointer)
     instructPointer->destination = matchGroups[lastGroupIndex];
     for (int i = 1; i < lastGroupIndex; i++)
     {
-        instructPointer->args.push_back(matchGroups[i]);
+        if (matchGroups[i].length() > 0)
+        {
+            instructPointer->args.push_back(matchGroups[i]);
+        }
     }
     if (DEBUG_V)
     {
-        cout << "instr: [" << opName << "," << instructPointer->args[0] << ",.. ->" << instructPointer->destination << "] \n";
+        cout << "instr: [" << opName << "," << instructPointer->args[0] << ",.. ->" << instructPointer->destination << "] matchGroups.size() [" << matchGroups.size() << "] \n";
     }
 }
 
@@ -78,19 +92,82 @@ void readInstructions(vector<string> rawLines, InstructionMap &instructions)
         saveInstruction(current, instructions);
     }
 }
-
-int calcValueRec(string wire, InstructionMap &instructionMap)
+unsigned short doOperation(int opCode, vector<unsigned short> args)
 {
+    switch (opCode)
+    {
+    case NOT:
+        return ~args[0];
+    case AND:
+        return args[0] & args[1];
+    case RSHIFT:
+        return ((unsigned short)args[0]) >> args[1];
+    case LSHIFT:
+        return ((unsigned short)args[0]) << args[1];
+    case OR:
+        return args[0] | args[1];
+    case ASSIGN:
+        return args[0];
+    }
+    cout << "Bad opCode given [" << opCode << "] \n";
+    throw "Bad opCode given";
+}
+
+unsigned short calcValueRec(string wire, InstructionMap &instructionMap)
+{
+    if (regex_match(wire, regex("[0-9]+")))
+    {
+        return stoi(wire);
+    }
     auto result = instructionMap.find(wire);
     if (result == instructionMap.end())
     {
         cout << "wire [" << wire << "] was end!\n";
-        cout << "instructionMap size [" << instructionMap.size() << "\n";
+        cout << "instructionMap size [" << instructionMap.size() << "] \n";
         throw "No instruction found with given destination";
     }
-    auto instruct = result->second;
-    cout << "instruct.opCode [" << instruct.opCode << "]\n";
-    return 0;
+    Instruction &instruct = result->second;
+
+    if (instruct.isCached)
+    {
+        if (DEBUG_V)
+        {
+            if (instruct.opCode == NOT || instruct.opCode == ASSIGN)
+            {
+                cout << "wire [" << wire << "] instruct.args[0] [" << instruct.args[0] << "] opname [" << opnames[instruct.opCode] << "] instruct.cachedVal [" << instruct.cachedVal << "]\n";
+            }
+            else
+            {
+                cout << "wire [" << wire << "] instruct.args[0] [" << instruct.args[0] << "] instruct.args[1] [" << instruct.args[1] << "] opname [" << opnames[instruct.opCode] << "] instruct.cachedVal [" << instruct.cachedVal << "]\n";
+            }
+        }
+        return instruct.cachedVal;
+    }
+    if (DEBUG_V)
+    {
+        cout << "wire [" << wire << "] instruct.opCode [" << instruct.opCode << "]\n";
+    }
+
+    vector<unsigned short> resolvedArgs;
+    for (int i = 0; i < instruct.args.size(); i++)
+    {
+        resolvedArgs.push_back(calcValueRec(instruct.args[i], instructionMap));
+    }
+    unsigned short operationResult = doOperation(instruct.opCode, resolvedArgs);
+    if (DEBUG_V)
+    {
+        if (instruct.opCode == NOT || instruct.opCode == ASSIGN)
+        {
+            cout << "wire [" << wire << "] instruct.args[0] [" << instruct.args[0] << "] opname [" << opnames[instruct.opCode] << "], resolvedArgs[0] [" << resolvedArgs[0] << "] operationResult [" << operationResult << "]\n";
+        }
+        else
+        {
+            cout << "wire [" << wire << "] instruct.args[0] [" << instruct.args[0] << "] instruct.args[1] [" << instruct.args[1] << "] opname [" << opnames[instruct.opCode] << "], resolvedArgs[0] [" << resolvedArgs[0] << "], resolvedArgs[1] [" << resolvedArgs[1] << "] operationResult [" << operationResult << "]\n";
+        }
+    }
+    instruct.cachedVal = operationResult;
+    instruct.isCached = true;
+    return operationResult;
 }
 int calcPart1Solution(InstructionMap &instructions)
 {
