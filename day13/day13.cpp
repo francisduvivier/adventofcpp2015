@@ -19,18 +19,26 @@ int calcLength(Path path)
 }
 void saveDistance(string from, string to, int distance, DistanceMap &distanceMap)
 {
-    if (DEBUG_I)
-    {
-        cout << "saving distance from [" << from << "] to [" << to << "] = [" << distance << "]\n";
-    }
     auto findResult = distanceMap.find(from);
 
     if (findResult != distanceMap.end())
     {
         map<string, int> &distancesFrom1Place = findResult->second;
-        distancesFrom1Place.insert(pair<string, int>(to, distance));
-        if (DEBUG_V)
+        map<string, int>::iterator find1Result = distancesFrom1Place.find(to);
+        if (find1Result != distancesFrom1Place.end())
         {
+            distance += find1Result->second;
+            distancesFrom1Place[to] = distance;
+        }
+        else
+        {
+            distancesFrom1Place.insert(pair<string, int>(to, distance));
+        }
+
+        if (DEBUG_I)
+        {
+            cout << "inserted dist [" << distance << "]\n";
+            cout << "distancesFrom1Place.find(to)->second [" << distancesFrom1Place.find(to)->second << "]\n";
             cout << "distancesFrom1Place.size() [" << distancesFrom1Place.size() << "] to [" << distancesFrom1Place.begin()->first << "] len [" << distancesFrom1Place.begin()->second << "]\n";
         }
     }
@@ -39,6 +47,10 @@ void saveDistance(string from, string to, int distance, DistanceMap &distanceMap
         map<string, int> newMap;
         newMap.insert(pair<string, int>(to, distance));
         distanceMap.insert(pair<string, map<string, int>>(from, newMap));
+    }
+    if (DEBUG_I)
+    {
+        cout << "saving distance from [" << from << "] to [" << to << "] = [" << distance << "]\n";
     }
 
     auto findResult2 = distanceMap.find(from);
@@ -57,7 +69,7 @@ void fillDistanceMap(vector<string> lines, DistanceMap &distanceMap)
     {
         string line = lines[i];
         cmatch matchGroups;
-        regex re("(.+) to (.+) = ([0-9]+)");
+        regex re("(.+) would (lose|gain) ([0-9]+) happiness units by sitting next to (.+)\\.");
         bool foundMatch = regex_match(line.c_str(), matchGroups, re);
         if (!foundMatch)
         {
@@ -65,8 +77,8 @@ void fillDistanceMap(vector<string> lines, DistanceMap &distanceMap)
             throw "bad line [" + line + "]";
         }
         string from = matchGroups[1];
-        string to = matchGroups[2];
-        int distance = stoi(matchGroups[3]);
+        int distance = stoi(matchGroups[3]) * (matchGroups[2].first[0] == 'l' ? 1 : -1);
+        string to = matchGroups[4];
         saveDistance(from, to, distance, distanceMap);
         saveDistance(to, from, distance, distanceMap);
     }
@@ -93,22 +105,24 @@ int findDistance(string from, string to, DistanceMap &distanceMap)
     return distance;
 }
 
-Path findShortestRec(Path currPath, vector<string> cities, DistanceMap distanceMap)
+Path findShortestRec(Path currPath, vector<string> people, DistanceMap distanceMap)
 {
-    if (cities.size() == 1)
+    if (people.size() == 1)
     {
         string startCity = (currPath.end() - 1)->first;
-        int distance = findDistance(startCity, cities[0], distanceMap);
+        int distance = findDistance(startCity, people[0], distanceMap);
+        string fullPathStartCity = currPath[0].first;
+        distance += findDistance(people[0], fullPathStartCity, distanceMap);
         if (DEBUG_V)
         {
             cout << "sending last distance [" << distance << "]\n";
         }
-        currPath.push_back(pair<string, int>(cities[0], distance));
+        currPath.push_back(pair<string, int>(people[0], distance));
         return currPath;
     }
     Path shortestPath;
     int shortestLength = -1;
-    for (int i = 0; i < cities.size(); i++)
+    for (int i = 0; i < people.size(); i++)
     {
         int startDistance;
         if (currPath.size() == 0)
@@ -118,15 +132,15 @@ Path findShortestRec(Path currPath, vector<string> cities, DistanceMap distanceM
         else
         {
             string startCity = (currPath.end() - 1)->first;
-            startDistance = findDistance(startCity, cities[i], distanceMap);
+            startDistance = findDistance(startCity, people[i], distanceMap);
         }
         if (DEBUG_V)
         {
             cout << "setting start distance [" << startDistance << "]\n";
         }
         Path newCurrPath = currPath;
-        newCurrPath.push_back(pair<string, int>(cities[i], startDistance));
-        vector<string> remainingCities = cities;
+        newCurrPath.push_back(pair<string, int>(people[i], startDistance));
+        vector<string> remainingCities = people;
         remainingCities.erase(remainingCities.begin() + i);
         Path newPath = findShortestRec(newCurrPath, remainingCities, distanceMap);
         int newDistance = calcLength(newPath);
@@ -144,13 +158,13 @@ Path findShortestRec(Path currPath, vector<string> cities, DistanceMap distanceM
 }
 Path findShortestPath(DistanceMap &distanceMap)
 {
-    vector<string> cities;
+    vector<string> people;
     for (auto iter = distanceMap.begin(); iter != distanceMap.end(); ++iter)
     {
-        cities.push_back(iter->first);
+        people.push_back(iter->first);
     }
-    cout << "cities size [" << cities.size() << "]\n";
-    Path shortestPath = findShortestRec(Path(), cities, distanceMap);
+    cout << "people size [" << people.size() << "]\n";
+    Path shortestPath = findShortestRec(Path(), people, distanceMap);
     return shortestPath;
 }
 
@@ -164,5 +178,5 @@ int main()
     fillDistanceMap(lines, distanceMap);
     Path shortestPath = findShortestPath(distanceMap);
     int pathLength = calcLength(shortestPath);
-    cout << "Part 1 solution is [" << pathLength << "]\n";
+    cout << "Part 1 solution is [" << -pathLength << "]\n";
 }
