@@ -37,7 +37,6 @@ void saveDistance(string from, string to, int distance, DistanceMap &distanceMap
 
         if (DEBUG_I)
         {
-            cout << "inserted dist [" << distance << "]\n";
             cout << "distancesFrom1Place.find(to)->second [" << distancesFrom1Place.find(to)->second << "]\n";
             cout << "distancesFrom1Place.size() [" << distancesFrom1Place.size() << "] to [" << distancesFrom1Place.begin()->first << "] len [" << distancesFrom1Place.begin()->second << "]\n";
         }
@@ -167,7 +166,20 @@ Path findShortestPath(DistanceMap &distanceMap)
     Path shortestPath = findShortestRec(Path(), people, distanceMap);
     return shortestPath;
 }
+void addNeutralPerson(DistanceMap &distanceMap)
+{
+    vector<string> people;
 
+    for (auto iter = distanceMap.begin(); iter != distanceMap.end(); ++iter)
+    {
+        people.push_back(iter->first);
+    }
+    for (int i = 0; i < people.size(); i++)
+    {
+        saveDistance("Me", people[i], 0, distanceMap);
+        saveDistance(people[i], "Me", 0, distanceMap);
+    }
+}
 int main()
 {
     cout << "Day 13\n";
@@ -179,4 +191,9 @@ int main()
     Path shortestPath = findShortestPath(distanceMap);
     int pathLength = calcLength(shortestPath);
     cout << "Part 1 solution is [" << -pathLength << "]\n";
+
+    addNeutralPerson(distanceMap);
+    shortestPath = findShortestPath(distanceMap);
+    pathLength = calcLength(shortestPath);
+    cout << "Part 2 solution is [" << -pathLength << "]\n";
 }
