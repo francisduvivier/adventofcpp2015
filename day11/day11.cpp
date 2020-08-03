@@ -83,7 +83,6 @@ int main()
     string input = "hepxcrrq";
     cout << "Day 11\n";
     string currState = input;
-    bool solutionFound = false;
     if (DEBUG_I)
     {
         cout << "getNext(\"abcdffaa\") (abcdffab) [" << getNext("abcdffaa") << "]\n";
@@ -95,17 +94,22 @@ int main()
         cout << "checkValid(\"abcdfkaa\") (0) [" << checkValid("abcdfkaa") << "]\n";
         cout << "checkValid(\"abkdffaa\") (0) [" << checkValid("abkdffaa") << "]\n";
     }
-    while (!solutionFound)
+    for (int currPart = 1; currPart <= 2; currPart++)
     {
-        if (DEBUG_V)
+
+        bool solutionFound = false;
+        while (!solutionFound)
         {
-            cout << "currState [" << currState << "]\n";
+            if (DEBUG_V)
+            {
+                cout << "currState [" << currState << "]\n";
+            }
+            currState = getNext(currState);
+            if (checkValid(currState))
+            {
+                solutionFound = true;
+            }
         }
-        currState = getNext(currState);
-        if (checkValid(currState))
-        {
-            solutionFound = true;
-        }
+        cout << "Part " << currPart << " Solution is < " << currState << " >\n";
     }
-    cout << "Part 1 Solution is < " << currState << " >\n";
 }
