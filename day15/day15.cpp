@@ -30,7 +30,7 @@ IngredientInfo mergeIngredients(IngredientInfo &start, IngredientInfo &newIngred
     result.calories += newIngredient.calories * newIngredientAmount;
     return result;
 }
-IngredientInfo getBestTasteRec(IngredientInfoMap &ingredientInfoMap, IngredientInfo &ingredientStatus, vector<string> &ingredientsLeft, int remainingSpoons)
+pair<vector<pair<string, int>>, IngredientInfo> getBestTasteRec(IngredientInfoMap &ingredientInfoMap, IngredientInfo &ingredientStatus, vector<string> &ingredientsLeft, int remainingSpoons)
 {
     if (ingredientsLeft.size() == 0)
     {
@@ -39,29 +39,31 @@ IngredientInfo getBestTasteRec(IngredientInfoMap &ingredientInfoMap, IngredientI
     if (ingredientsLeft.size() == 1)
     {
         auto newIngredientStatus = mergeIngredients(ingredientStatus, ingredientInfoMap[ingredientsLeft[0]], remainingSpoons);
-        return newIngredientStatus;
+        return pair<vector<pair<string, int>>, IngredientInfo>(vector<pair<string, int>>({pair<string, int>(ingredientsLeft[0], remainingSpoons)}), newIngredientStatus);
     }
     else
     {
-        pair<string, int> lastIngredient(ingredientsLeft[0], remainingSpoons);
-        IngredientInfo bestMerge;
+        pair<vector<pair<string, int>>, IngredientInfo> bestMerge;
         int bestTaste = -1;
         vector<string> newIngredientsLeft = ingredientsLeft;
-        string currIngredient = ingredientsLeft.back();
-        IngredientInfo currInfo = ingredientInfoMap[currIngredient];
+        string poppedIngredient = ingredientsLeft.back();
+        IngredientInfo currInfo = ingredientInfoMap[poppedIngredient];
         newIngredientsLeft.pop_back();
+        int poppedSpoons = -1;
         for (int currSpoons = 0; currSpoons <= remainingSpoons; currSpoons++)
         {
             int newRemainingSpoons = remainingSpoons - currSpoons;
             auto newIngredientStatus = mergeIngredients(ingredientStatus, currInfo, currSpoons);
             auto currBest = getBestTasteRec(ingredientInfoMap, newIngredientStatus, newIngredientsLeft, newRemainingSpoons);
-            int currBestTaste = calcTaste(currBest);
+            int currBestTaste = calcTaste(currBest.second);
             if (currBestTaste > bestTaste)
             {
                 bestTaste = currBestTaste;
                 bestMerge = currBest;
+                poppedSpoons = currSpoons;
             }
         }
+        bestMerge.first.push_back(pair<string, int>(poppedIngredient, poppedSpoons));
         return bestMerge;
     }
 }
@@ -72,14 +74,18 @@ void fillIngredientInfoMap(vector<string> &lines, IngredientInfoMap &infoMap)
         cmatch matchGroups;
         regex re("(.+): capacity (-?[0-9]+), durability (-?[0-9]+), flavor (-?[0-9]+), texture (-?[0-9]+), calories (-?[0-9]+)");
         regex_match(lines[i].c_str(), matchGroups, re);
-        int cg = 1;
         IngredientInfo properties;
+        int cg = 1;
         string name = matchGroups[cg++];
         properties.capacity = stoi(matchGroups[cg++]);
         properties.durability = stoi(matchGroups[cg++]);
         properties.flavor = stoi(matchGroups[cg++]);
         properties.texture = stoi(matchGroups[cg++]);
         properties.calories = stoi(matchGroups[cg++]);
+        if (DEBUG_I)
+        {
+            cout << "Adding name[" << name << "], capacity[" << properties.capacity << "], durability[" << properties.durability << "], flavor[" << properties.flavor << "], texture[" << properties.texture << "], calories[" << properties.calories << "]\n";
+        }
         pair<string, IngredientInfo> infoPair(name, properties);
         infoMap.insert(infoPair);
     }
@@ -101,6 +107,14 @@ int main()
     }
     auto bestIngredients = getBestTasteRec(ingredientInfoMap, newIngredientStatus, newIngredientsLeft, maxSpoons);
 
-    int currBestTaste = calcTaste(bestIngredients);
+    int currBestTaste = calcTaste(bestIngredients.second);
+    if (DEBUG_I)
+    {
+        for (int i = 0; i < bestIngredients.first.size(); i++)
+        {
+            auto nameSpoons = bestIngredients.first[i];
+            cout << "Best Ingredient [" << nameSpoons.first << "], spoons [" << nameSpoons.second << "]\n";
+        }
+    }
     cout << "Part 1 solution is < " << currBestTaste << " >\n";
 }
