@@ -8,11 +8,11 @@ const bool DEBUG_V = 0;
 const bool DEBUG_I = 0;
 struct IngredientInfo
 {
-    int capacity;   // (how well it helps the cookie absorb milk)
-    int durability; // (how well it keeps the cookie intact when full of milk)
-    int flavor;     // (how tasty it makes the cookie)
-    int texture;    // (how it improves the feel of the cookie)
-    int calories;   // (how many calories it adds to the cookie)
+    int capacity = 0;   // (how well it helps the cookie absorb milk)
+    int durability = 0; // (how well it keeps the cookie intact when full of milk)
+    int flavor = 0;     // (how tasty it makes the cookie)
+    int texture = 0;    // (how it improves the feel of the cookie)
+    int calories = 0;   // (how many calories it adds to the cookie)
 };
 using IngredientInfoMap = map<string, IngredientInfo>;
 int calcTaste(IngredientInfo mergedIngredients)
