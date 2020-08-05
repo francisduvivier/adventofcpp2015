@@ -107,6 +107,21 @@ void doPart1(int lightGrid[GRID_SIZE_ROWS][GRID_SIZE_COLS])
     cout << "Part 1 solution is < " << numberTurnedOn << " >\n";
 }
 
+void doPart2(int lightGrid[GRID_SIZE_ROWS][GRID_SIZE_COLS])
+{
+    const int iterations = 100;
+    for (int i = 0; i < iterations; i++)
+    {
+        doPart1Instruction(lightGrid);
+        lightGrid[0][0]=1;
+        lightGrid[0][GRID_SIZE_COLS-1]=1;
+        lightGrid[GRID_SIZE_ROWS-1][0]=1;
+        lightGrid[GRID_SIZE_ROWS-1][GRID_SIZE_COLS-1]=1;
+    }
+    int numberTurnedOn = countBrightness(lightGrid);
+    cout << "Part 2 solution is < " << numberTurnedOn << " >\n";
+}
+
 int main()
 {
     cout << "Day 18\n";
@@ -116,4 +131,6 @@ int main()
     int startGrid[GRID_SIZE_ROWS][GRID_SIZE_COLS];
     readLines(lines, startGrid);
     doPart1(startGrid);
+    readLines(lines, startGrid);
+    doPart2(startGrid);
 }
