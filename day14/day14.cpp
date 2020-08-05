@@ -13,6 +13,11 @@ struct SpeedInfo
     int waitTime;
 };
 
+struct DeerState
+{
+    int points = 0;
+};
+
 using SpeedMap = map<string, SpeedInfo>;
 void parseSpeedInfo(vector<string> &lines, SpeedMap &speedMap)
 {
@@ -38,23 +43,74 @@ int simulateFlight(int travelTime, SpeedInfo &speedInfo)
     int remainFlightTime = min(speedInfo.flyTime, travelTime - nbFlightsWithFullRest * oneFlightWithWaitTime);
     return (nbFlightsWithFullRest * speedInfo.flyTime + remainFlightTime) * speedInfo.speedKmS;
 }
-void doPart1(SpeedMap &speedMap, int travelTime)
+pair<vector<string>, int> calcFastestDeer(SpeedMap &speedMap, int travelTime)
 {
     int biggestDistance = 0;
-    string biggestDistanceName = "";
+    vector<string> biggestDistanceNames;
     for (auto it = speedMap.begin(); it != speedMap.end(); it++)
     {
         int distance = simulateFlight(travelTime, it->second);
-        if (distance > biggestDistance)
+        if (distance >= biggestDistance)
         {
-            biggestDistance = distance;
-            biggestDistanceName = it->first;
+            if (distance > biggestDistance)
+            {
+                biggestDistance = distance;
+                biggestDistanceNames.clear();
+            }
+            biggestDistanceNames.push_back(it->first);
         }
     }
-    cout << "Part 1 solution is < "
-         << biggestDistance
+    return pair<vector<string>, int>(biggestDistanceNames, biggestDistance);
+}
+using StateMap = map<string, DeerState>;
+void initStateMap(SpeedMap &speedMap, StateMap &stateMap)
+{
+    for (auto it = speedMap.begin(); it != speedMap.end(); it++)
+    {
+        DeerState startState;
+        stateMap.insert(pair<string, DeerState>(it->first, startState));
+    }
+}
+void simulateFlightWithPoints(SpeedMap &speedMap, StateMap &stateMap, int travelTime)
+{
+    initStateMap(speedMap, stateMap);
+
+    for (int time = 1; time <= travelTime; time++)
+    {
+        auto bestPair = calcFastestDeer(speedMap, time);
+        vector<string> bestDeersForTime = bestPair.first;
+        for (auto it = bestDeersForTime.begin(); it != bestDeersForTime.end(); it++)
+        {
+            string winnerName = *it;
+            stateMap[winnerName].points += 1;
+            if (DEBUG_V)
+            {
+                cout << "T[" << time << "], bestDeer < " << winnerName << " > dist < " << bestPair.second << " >, points < " << stateMap[winnerName].points << " >\n";
+            }
+        }
+    }
+}
+void doPart2(SpeedMap &speedMap, int travelTime)
+{
+    int mostPoints = 0;
+    string winningName = "";
+    StateMap stateMap;
+
+    simulateFlightWithPoints(speedMap, stateMap, travelTime);
+
+    for (auto it = stateMap.begin(); it != stateMap.end(); it++)
+    {
+        int points = it->second.points;
+        if (points > mostPoints)
+        {
+            mostPoints = points;
+            winningName = it->first;
+        }
+    }
+    cout << "Part 2 solution is < "
+         << mostPoints
          << " > for Deer < "
-         << biggestDistanceName
+         << winningName
          << " >\n";
 }
 int main()
@@ -66,5 +122,12 @@ int main()
     SpeedMap speedMap;
     parseSpeedInfo(lines, speedMap);
     int travelTime = 2503;
-    doPart1(speedMap, travelTime);
+    auto part1 = calcFastestDeer(speedMap, travelTime);
+
+    cout << "Part 1 solution is < "
+         << part1.second
+         << " > for Deer < "
+         << part1.first[0]
+         << " >\n";
+    doPart2(speedMap, travelTime);
 }
