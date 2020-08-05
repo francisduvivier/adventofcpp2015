@@ -19,6 +19,7 @@ struct ValidationData
 {
     vector<int> otherNumbers;
     int neededSum;
+    int numberOfNumbers;
 };
 
 using RecursionSolution = int;
@@ -49,7 +50,7 @@ bool isOkOption(RecursionStateData &validationData)
 }
 RecursionSolution possibleSums(RecursionStateData &validationData, DataToRecursivelyValidate &remainingOptions)
 {
-    if (remainingOptions.size() == 0)
+    if (remainingOptions.size() == 0 || validationData.otherNumbers.size() == validationData.numberOfNumbers)
     {
         return (int)isOkOption(validationData);
     }
@@ -74,9 +75,23 @@ int main()
     vector<string> lines;
     splitString(input, "\n", lines);
     vector<int> numbers = processInput(lines);
-    RecursionStateData startState;
     int neededSum = 150;
+    RecursionStateData startState;
     startState.neededSum = neededSum;
+    startState.numberOfNumbers = numbers.size();
     int solutionPart1 = possibleSums(startState, numbers);
     cout << "Part 1 solution is < " << solutionPart1 << " >\n";
+
+    // Part 2
+    for (int i = 1; i <= numbers.size(); i++)
+    {
+        startState.otherNumbers.clear();
+        startState.numberOfNumbers = i;
+        int solutionPart2 = possibleSums(startState, numbers);
+        if (solutionPart2 != 0)
+        {
+            cout << "Part 2 solution is < " << solutionPart2 << " >\n";
+            break;
+        }
+    }
 }
