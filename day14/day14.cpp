@@ -38,18 +38,10 @@ int simulateFlight(int travelTime, SpeedInfo &speedInfo)
     int remainFlightTime = min(speedInfo.flyTime, travelTime - nbFlightsWithFullRest * oneFlightWithWaitTime);
     return (nbFlightsWithFullRest * speedInfo.flyTime + remainFlightTime) * speedInfo.speedKmS;
 }
-
-int main()
+void doPart1(SpeedMap &speedMap, int travelTime)
 {
-    cout << "Day 14\n";
-    string input = getInput(14);
-    vector<string> lines;
-    splitString(input, "\n", lines);
-    SpeedMap speedMap;
-    parseSpeedInfo(lines, speedMap);
     int biggestDistance = 0;
     string biggestDistanceName = "";
-    int travelTime = 2503;
     for (auto it = speedMap.begin(); it != speedMap.end(); it++)
     {
         int distance = simulateFlight(travelTime, it->second);
@@ -64,4 +56,15 @@ int main()
          << " > for Deer < "
          << biggestDistanceName
          << " >\n";
+}
+int main()
+{
+    cout << "Day 14\n";
+    string input = getInput(14);
+    vector<string> lines;
+    splitString(input, "\n", lines);
+    SpeedMap speedMap;
+    parseSpeedInfo(lines, speedMap);
+    int travelTime = 2503;
+    doPart1(speedMap, travelTime);
 }
