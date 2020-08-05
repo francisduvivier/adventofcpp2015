@@ -32,6 +32,10 @@ IngredientInfo mergeIngredients(IngredientInfo &start, IngredientInfo &newIngred
 }
 IngredientInfo getBestTasteRec(IngredientInfoMap &ingredientInfoMap, IngredientInfo &ingredientStatus, vector<string> &ingredientsLeft, int remainingSpoons)
 {
+    if (ingredientsLeft.size() == 0)
+    {
+        throw "Illegal arguments";
+    }
     if (ingredientsLeft.size() == 1)
     {
         auto newIngredientStatus = mergeIngredients(ingredientStatus, ingredientInfoMap[ingredientsLeft[0]], remainingSpoons);
@@ -61,7 +65,7 @@ IngredientInfo getBestTasteRec(IngredientInfoMap &ingredientInfoMap, IngredientI
         return bestMerge;
     }
 }
-void fillIngredientInfoMap(vector<string> &lines, IngredientInfoMap infoMap)
+void fillIngredientInfoMap(vector<string> &lines, IngredientInfoMap &infoMap)
 {
     for (int i = 0; i < lines.size(); i++)
     {
