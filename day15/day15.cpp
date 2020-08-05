@@ -30,7 +30,7 @@ IngredientInfo mergeIngredients(IngredientInfo &start, IngredientInfo &newIngred
     result.calories += newIngredient.calories * newIngredientAmount;
     return result;
 }
-pair<vector<pair<string, int>>, IngredientInfo> getBestTasteRec(IngredientInfoMap &ingredientInfoMap, IngredientInfo &ingredientStatus, vector<string> &ingredientsLeft, int remainingSpoons)
+pair<vector<pair<string, int>>, IngredientInfo> getBestTasteRec(IngredientInfoMap &ingredientInfoMap, IngredientInfo &ingredientStatus, vector<string> &ingredientsLeft, int remainingSpoons, int calories)
 {
     if (ingredientsLeft.size() == 0)
     {
@@ -54,9 +54,9 @@ pair<vector<pair<string, int>>, IngredientInfo> getBestTasteRec(IngredientInfoMa
         {
             int newRemainingSpoons = remainingSpoons - currSpoons;
             auto newIngredientStatus = mergeIngredients(ingredientStatus, currInfo, currSpoons);
-            auto currBest = getBestTasteRec(ingredientInfoMap, newIngredientStatus, newIngredientsLeft, newRemainingSpoons);
+            auto currBest = getBestTasteRec(ingredientInfoMap, newIngredientStatus, newIngredientsLeft, newRemainingSpoons, calories);
             int currBestTaste = calcTaste(currBest.second);
-            if (currBestTaste > bestTaste)
+            if (currBestTaste > bestTaste && (calories == -1 || currBest.second.calories == calories))
             {
                 bestTaste = currBestTaste;
                 bestMerge = currBest;
@@ -105,9 +105,8 @@ int main()
     {
         newIngredientsLeft.push_back(iter->first);
     }
-    auto bestIngredients = getBestTasteRec(ingredientInfoMap, newIngredientStatus, newIngredientsLeft, maxSpoons);
-
-    int currBestTaste = calcTaste(bestIngredients.second);
+    auto bestIngredients = getBestTasteRec(ingredientInfoMap, newIngredientStatus, newIngredientsLeft, maxSpoons, -1);
+    int part1BestTaste = calcTaste(bestIngredients.second);
     if (DEBUG_I)
     {
         for (int i = 0; i < bestIngredients.first.size(); i++)
@@ -116,5 +115,18 @@ int main()
             cout << "Best Ingredient [" << nameSpoons.first << "], spoons [" << nameSpoons.second << "]\n";
         }
     }
-    cout << "Part 1 solution is < " << currBestTaste << " >\n";
+    cout << "Part 1 solution is < " << part1BestTaste << " >\n";
+
+    auto bestIngredientsPart2 = getBestTasteRec(ingredientInfoMap, newIngredientStatus, newIngredientsLeft, maxSpoons, 500);
+    int part2BestTaste = calcTaste(bestIngredientsPart2.second);
+    if (DEBUG_I)
+    {
+        for (int i = 0; i < bestIngredientsPart2.first.size(); i++)
+        {
+            auto nameSpoons = bestIngredientsPart2.first[i];
+            cout << "Best Ingredient [" << nameSpoons.first << "], spoons [" << nameSpoons.second << "]\n";
+        }
+    }
+
+    cout << "Part 2 solution is < " << part2BestTaste << " >\n";
 }
