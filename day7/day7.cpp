@@ -21,7 +21,7 @@ const vector<string> opnames = {
     "RSHIFT", //2
     "LSHIFT", //3
     "OR",     //4
-    ""};      //5
+    "" };      //5
 
 int getOpName(string rawInstruction)
 {

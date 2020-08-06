@@ -17,17 +17,19 @@ int main() {
         std::string line = lines[i];
         std::vector<std::string> numbers;
         splitString(line, "x", numbers);
-        std::vector<int> ordered = {0, 0, 0};
+        std::vector<int> ordered = { 0, 0, 0 };
         for (int j = 0; j < numbers.size(); j++) {
             int number = std::stoi(numbers[j]);
             if (!ordered[0] || number < ordered[0]) {
                 ordered[2] = ordered[1];
                 ordered[1] = ordered[0];
                 ordered[0] = number;
-            } else if (!ordered[1] || number < ordered[1]) {
+            }
+            else if (!ordered[1] || number < ordered[1]) {
                 ordered[2] = ordered[1];
                 ordered[1] = number;
-            } else if (!ordered[2] || number < ordered[2]) {
+            }
+            else if (!ordered[2] || number < ordered[2]) {
                 ordered[2] = number;
             }
         }

@@ -24,16 +24,16 @@ void readLines(vector<string> rawLines, int lightGrid[GRID_SIZE_ROWS][GRID_SIZE_
     }
 }
 string pos_to_string(Position pos) {
-    return "["+to_string(pos.row)+", "+to_string(pos.col)+"]";
+    return "[" + to_string(pos.row) + ", " + to_string(pos.col) + "]";
 }
 bool isLegalNeighbor(Position neighbor, Position pos)
 {
-    return !(neighbor.row  == pos.row && neighbor.col == pos.col) &&
+    return !(neighbor.row == pos.row && neighbor.col == pos.col) &&
         neighbor.row < GRID_SIZE_ROWS && neighbor.row >= 0 &&
         neighbor.col < GRID_SIZE_COLS && neighbor.col >= 0;
 }
 
-const int diffs[3]={ -1, 0, 1 };
+const int diffs[3] = { -1, 0, 1 };
 int countNeighbors(int lightGrid[GRID_SIZE_ROWS][GRID_SIZE_COLS], Position pos)
 {
     int count = 0;
@@ -41,7 +41,7 @@ int countNeighbors(int lightGrid[GRID_SIZE_ROWS][GRID_SIZE_COLS], Position pos)
     {
         for (int ci = 0; ci < 3; ci++)
         {
-            Position newPos ={ pos.row + diffs[ri], pos.col + diffs[ci] };
+            Position newPos = { pos.row + diffs[ri], pos.col + diffs[ci] };
             if (isLegalNeighbor(newPos, pos) && lightGrid[newPos.row][newPos.col] == 1)
             {
                 count++;
@@ -67,7 +67,7 @@ void doPart1Instruction(int lightGrid[GRID_SIZE_ROWS][GRID_SIZE_COLS])
         for (int col = 0; col < GRID_SIZE_COLS; col++)
         {
             if (DEBUG_V) {
-                cout << "neighborcount"<< pos_to_string({ row, col })<< "="<<neighborCounts[row][col]<< "\n";
+                cout << "neighborcount" << pos_to_string({ row, col }) << "=" << neighborCounts[row][col] << "\n";
             }
             if (lightGrid[row][col] == 1)
             {
@@ -89,7 +89,7 @@ int countBrightness(int lightGrid[GRID_SIZE_ROWS][GRID_SIZE_COLS])
         for (int col = 0; col < GRID_SIZE_COLS; col++)
         {
             if (DEBUG_I) {
-                cout << "lightGrid[row][col]"<< pos_to_string({ row, col })<< "="<<lightGrid[row][col]<< "\n";
+                cout << "lightGrid[row][col]" << pos_to_string({ row, col }) << "=" << lightGrid[row][col] << "\n";
             }
             totalBrightness += lightGrid[row][col];
         }
@@ -113,10 +113,10 @@ void doPart2(int lightGrid[GRID_SIZE_ROWS][GRID_SIZE_COLS])
     for (int i = 0; i < iterations; i++)
     {
         doPart1Instruction(lightGrid);
-        lightGrid[0][0]=1;
-        lightGrid[0][GRID_SIZE_COLS-1]=1;
-        lightGrid[GRID_SIZE_ROWS-1][0]=1;
-        lightGrid[GRID_SIZE_ROWS-1][GRID_SIZE_COLS-1]=1;
+        lightGrid[0][0] = 1;
+        lightGrid[0][GRID_SIZE_COLS - 1] = 1;
+        lightGrid[GRID_SIZE_ROWS - 1][0] = 1;
+        lightGrid[GRID_SIZE_ROWS - 1][GRID_SIZE_COLS - 1] = 1;
     }
     int numberTurnedOn = countBrightness(lightGrid);
     cout << "Part 2 solution is < " << numberTurnedOn << " >\n";

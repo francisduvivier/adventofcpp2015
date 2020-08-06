@@ -56,7 +56,7 @@ RecursionSolution possibleSums(RecursionStateData &validationData, DataToRecursi
     }
     else
     {
-        vector<bool> options({true, false});
+        vector<bool> options({ true, false });
         int totalSum = 0;
         for (int o = 0; o < options.size(); o++)
         {

@@ -41,14 +41,14 @@ int main()
         {
             hasFound5 = true;
             cout << "Part 1 result is:\n< " << i << " >\n"
-                 << "with digest: < " << digest << " >\n";
+                << "with digest: < " << digest << " >\n";
         }
 
         if (!hasFound6 && has6LeadingZeros(digest))
         {
             hasFound6 = true;
             cout << "Part 2 result is:\n< " << i << " >\n"
-                 << "with digest: < " << digest << " >\n";
+                << "with digest: < " << digest << " >\n";
         }
     }
 }

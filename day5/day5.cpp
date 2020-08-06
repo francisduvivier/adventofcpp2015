@@ -76,7 +76,7 @@ int main()
         if (isNiceStringPart1(lines[i]))
         {
             nbNicePart1++;
-        } 
+        }
         if (isNiceStringPart2(lines[i]))
         {
             nbNicePart2++;

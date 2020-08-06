@@ -20,18 +20,18 @@ int geNbUniqueVisitedPlaces(const int nbMovers) {
     count++;
     for (int i = 0; i < input.size(); i++) {
         switch (input[i]) {
-            case 'v':
-                currY[currMover]--;
-                break;
-            case '^':
-                currY[currMover]++;
-                break;
-            case '<':
-                currX[currMover]--;
-                break;
-            case '>':
-                currX[currMover]++;
-                break;
+        case 'v':
+            currY[currMover]--;
+            break;
+        case '^':
+            currY[currMover]++;
+            break;
+        case '<':
+            currX[currMover]--;
+            break;
+        case '>':
+            currX[currMover]++;
+            break;
         }
         if (abs(currX[currMover]) >= HALF_MAX_SIZE || abs(currY[currMover]) >= HALF_MAX_SIZE) {
             throw "invalid state";

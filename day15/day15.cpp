@@ -39,7 +39,7 @@ pair<vector<pair<string, int>>, IngredientInfo> getBestTasteRec(IngredientInfoMa
     if (ingredientsLeft.size() == 1)
     {
         auto newIngredientStatus = mergeIngredients(ingredientStatus, ingredientInfoMap[ingredientsLeft[0]], remainingSpoons);
-        return pair<vector<pair<string, int>>, IngredientInfo>(vector<pair<string, int>>({pair<string, int>(ingredientsLeft[0], remainingSpoons)}), newIngredientStatus);
+        return pair<vector<pair<string, int>>, IngredientInfo>(vector<pair<string, int>>({ pair<string, int>(ingredientsLeft[0], remainingSpoons) }), newIngredientStatus);
     }
     else
     {

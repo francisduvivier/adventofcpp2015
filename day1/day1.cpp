@@ -18,7 +18,8 @@ int findFirstPosForLevel(std::string allLines, int level) {
     for (char &c : allLines) {
         if (c == '(') {
             count++;
-        } else {
+        }
+        else {
             count--;
         }
         if (count == level) {
@@ -39,7 +40,10 @@ int main() {
             nbLines++;
         }
         myfile.close();
-    } else { std::cout << "Unable to open file"; }
+    }
+    else {
+        std::cout << "Unable to open file";
+    }
 
     std::cout << "Part 1: endFloor: " << allLines.size() - 2 * countChars(')', allLines) << "\n";
     std::cout << "Part 2: basePos: " << findFirstPosForLevel(allLines, -1) << "\n";

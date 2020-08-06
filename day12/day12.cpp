@@ -148,7 +148,7 @@ int main()
     string input = getInput(12);
     if (DEBUG_I)
     {
-        cout << "addAllNumbers([1,3,-1,2]) == 5 [" << (addAllNumbers(vector<int>({1, 3, -1, 2})) == 5) << "]\n";
+        cout << "addAllNumbers([1,3,-1,2]) == 5 [" << (addAllNumbers(vector<int>({ 1, 3, -1, 2 })) == 5) << "]\n";
         cout << "addAllNumbers(findAllNumbers([1,3,-1,2])) == 5 [" << (addAllNumbers(findAllNumbers("[1, 3, -1, 2]")) == 5) << "]\n";
         cout << "addAllNumbers(findAllNumbers([1,3,-1,2])) [" << addAllNumbers(findAllNumbers("[1, 3, -1, 2]")) << "]\n";
     }

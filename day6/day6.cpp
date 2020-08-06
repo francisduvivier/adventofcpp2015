@@ -27,7 +27,7 @@ const int TOGGLE = 0, TURN_ON = 1, TURN_OFF = 2;
 const vector<string> opnames = {
     "toggle",    //0
     "turn on",   //1
-    "turn off"}; //2
+    "turn off" }; //2
 int getOpName(string rawInstruction)
 {
     for (int i = 0; i < opnames.size(); i++)

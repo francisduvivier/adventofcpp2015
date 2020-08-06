@@ -108,10 +108,10 @@ void doPart2(SpeedMap &speedMap, int travelTime)
         }
     }
     cout << "Part 2 solution is < "
-         << mostPoints
-         << " > for Deer < "
-         << winningName
-         << " >\n";
+        << mostPoints
+        << " > for Deer < "
+        << winningName
+        << " >\n";
 }
 int main()
 {
@@ -125,9 +125,9 @@ int main()
     auto part1 = calcFastestDeer(speedMap, travelTime);
 
     cout << "Part 1 solution is < "
-         << part1.second
-         << " > for Deer < "
-         << part1.first[0]
-         << " >\n";
+        << part1.second
+        << " > for Deer < "
+        << part1.first[0]
+        << " >\n";
     doPart2(speedMap, travelTime);
 }
