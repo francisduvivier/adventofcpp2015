@@ -28,10 +28,9 @@ InfoMap parseReplacers(vector<string> lines)
 }
 
 using RevInfoMap = map<string, string>;
-pair<int, RevInfoMap> parseReplacersReverse(vector<string> lines)
+RevInfoMap parseReplacersReverse(vector<string> lines)
 {
     RevInfoMap revInfoMap;
-    int maxKeySize = 0;
     for (int i = 0; i < lines.size(); i++) {
         cmatch matchGroups;
         regex re("(.+) => (.+)");
@@ -40,15 +39,12 @@ pair<int, RevInfoMap> parseReplacersReverse(vector<string> lines)
         string name = matchGroups[cg++];
         string replacement = matchGroups[cg++];
         auto insertResult = revInfoMap.insert({ replacement, name });
-        if (replacement.length() > maxKeySize) {
-            maxKeySize = replacement.length();
-        }
         if (!insertResult.second) {
             cout << "Error: revInfoMap[" + replacement + "] already exists!\n";
             throw "revInfoMap[" + replacement + "] already exists!\n";
         }
     }
-    return { maxKeySize, revInfoMap };
+    return revInfoMap;
 }
 set<string> doReplaceMents(string line, int position, InfoMap &replacerMap) {
     vector<string> replaceStrings({ line.substr(position, 1), line.substr(position, 2) });
@@ -78,45 +74,144 @@ void doPart1(string &proteinLine, InfoMap &replacerMap)
     cout << "Part 1 solution is < " << options.size() << " >\n";
 }
 
-string doRevReplaceMentIfPossible(string line, int position, int maxSize, RevInfoMap &replacerMap) {
-    for (int size = 1; size <= maxSize; size++) {
-        string selected = line.substr(position, size);
-        if (replacerMap.find(selected) != replacerMap.end()) {
-            return selected;
-        }
+vector<string> replaceAll(string &input, pair<string, string> &replaceInfo) {
+    vector<string> options;
+    int it = input.find(replaceInfo.first);
+    while (it != string::npos) {
+        string originalCopy = input;
+        string option = originalCopy.replace(it, replaceInfo.first.length(), replaceInfo.second);
+        options.push_back(option);
+        it = input.find(replaceInfo.first, it + replaceInfo.first.length());
     }
-    return line.substr(position, 1);
+
+    return options;
 }
 
-void doPart2(string &startProteine, int maxSize, RevInfoMap &replacerMap)
+struct ValidationData
 {
-    set<string> options;
-    int processedSize = 1;
-    string currProteine = startProteine;
-    string proteinBuilder = startProteine;
-    int step = 0;
-    while (currProteine.length() > 1) {
-        for (int i = 0; i < currProteine.length(); i += processedSize) {
-            string replacementOrFirstChar = doRevReplaceMentIfPossible(currProteine, i, maxSize, replacerMap);
-            proteinBuilder += replacementOrFirstChar;
-            processedSize = replacementOrFirstChar.length();
+    string neededAtom = "e";
+    int stepsTillNow = 0;
+    vector<pair<string, string>> replacements;
+    string currProtein;
+};
+map<string, int> tried;
+
+using RecursionSolution = ValidationData;
+using RecursionStateData = ValidationData;
+using RecursionOptions = vector<pair<string, string>>;
+using RecursionOption = int;
+void updateValidationData(RecursionStateData &validationData, RecursionOptions &remainingOptions, RecursionOption choice, vector<RecursionStateData> &optionsHolder)
+{
+    auto replaceInfo = remainingOptions[choice];
+    if (DEBUG_V) {
+        cout << "S updateValidationData: , replaceInfo {" << replaceInfo.first << " => " << replaceInfo.second << "}, nbRepl [" << validationData.replacements.size() << "], currProt [" << validationData.currProtein << "]\n";
+    }
+    auto currProteinOptions = replaceAll(validationData.currProtein, replaceInfo);
+    for (auto it = currProteinOptions.begin(); it != currProteinOptions.end(); it++) {
+        if (tried.find(*it) == tried.end() || tried[*it] > validationData.stepsTillNow + 1) {
+            tried[*it] = validationData.stepsTillNow + 1;
+            RecursionStateData newState = validationData;
+            newState.currProtein = *it;
+            newState.replacements.push_back(replaceInfo);
+            newState.stepsTillNow++;
+            optionsHolder.push_back(newState);
         }
-        if (currProteine == proteinBuilder) {
-            cout << "Got Stuck :(!, on [" << proteinBuilder << "]\n";
-            throw "Got Stuck :(!";
+    }
+    if (DEBUG_V) {
+        cout << "E updateValidationData: , replaceInfo {" << replaceInfo.first << " => " << replaceInfo.second << "}, nbRepl [" << validationData.replacements.size() << "], currProt [" << validationData.currProtein << "]\n";
+    }
+}
+
+int bestOptionTillNow = INT32_MAX;
+bool isOkOption(RecursionStateData &validationData)
+{
+    if (validationData.currProtein.compare(validationData.neededAtom) == 0) {
+        if (bestOptionTillNow >= validationData.stepsTillNow) {
+            bestOptionTillNow = validationData.stepsTillNow;
+            if (DEBUG_I) {
+                cout << "found Ok option\n";
+            }
+            return true;
         }
-        currProteine = proteinBuilder;
-        proteinBuilder.clear();
-        if (DEBUG_I) {
-            cout << "step [" << step << "], currProteine.length() [" << currProteine.length() << "]\n";
+    }
+    return false;
+}
+RecursionSolution findShortestPathRec(RecursionStateData &validationData, RecursionOptions &replaceOptions)
+{
+    if (DEBUG_V) {
+        cout << "into findShortestPathRec  level [" << validationData.stepsTillNow << "], currProti [" << validationData.currProtein << "]\n";
+    }
+    if (bestOptionTillNow <= validationData.stepsTillNow) {
+        if (DEBUG_V) {
+            cout << "bestOptionTillNow <= validationData.stepsTillNow , nbRepl [" << validationData.replacements.size() << "]\n";;
+        }
+        return validationData;
+    }
+    if (isOkOption(validationData))
+    {
+        if (DEBUG_V) {
+            cout << "isOkOption(validationData)]\n";;
+        }
+        return validationData;
+    }
+    else
+    {
+        RecursionSolution bestOption;
+        bestOption.stepsTillNow = INT32_MAX;
+        vector<ValidationData> allOptions;
+        for (int i = 0; i < replaceOptions.size(); i++)
+        {
+            updateValidationData(validationData, replaceOptions, i, allOptions);
         }
         if (DEBUG_V) {
-            cout << "step [" << step << "], currProteine [" << currProteine << "]\n";
+            cout << "allOptions.size() [" << allOptions.size() << "]\n";
         }
-        step++;
+        for (int j = 0; j < allOptions.size(); j++) {
+            ValidationData newValidationData = allOptions[j];
+            if (validationData.currProtein.compare(newValidationData.currProtein) == 0) {
+                if (DEBUG_V) {
+                    cout << "updateValidationData: , same: currProts [" << validationData.currProtein << "], j [" << j << "]\n";
+                }
+                continue;
+            }
+            RecursionSolution currOption = findShortestPathRec(newValidationData, replaceOptions);
+            if (currOption.stepsTillNow < bestOption.stepsTillNow) {
+                bestOption = currOption;
+            }
+        }
+        if (DEBUG_V) {
+            cout << "outo findShortestPathRec  level [" << validationData.stepsTillNow << "], currProto [" << validationData.currProtein << "]\n";
+        }
+        return bestOption;
     }
-    cout << "Part 2 solution is < " << step << " >\n";
+}
 
+void doPart2(string &startProtein, RevInfoMap &replacerMap)
+{
+    string currProtein = startProtein;
+    bool foundSolution = false;
+    RecursionSolution solution;
+    int  MAX_ALLOWED = 10;
+    for (int maxSteps = 1; !foundSolution && maxSteps <= MAX_ALLOWED; maxSteps++) {
+        if (DEBUG_I) {
+            cout << "trying with maxSteps [" << maxSteps << "]\n";
+        }
+        bestOptionTillNow = maxSteps + 1;
+        tried.clear();
+        RecursionStateData  startState{ "e", 0, {}, currProtein };
+        RecursionOptions options;
+        for (auto it = replacerMap.begin(); it != replacerMap.end(); it++) {
+            options.push_back(*it);
+        }
+        solution = findShortestPathRec(startState, options);
+        foundSolution = isOkOption(solution);
+    }
+    if (DEBUG_I) {
+        for (int i = 0; i < solution.replacements.size(); i++) {
+            cout << "Winning step: " << solution.replacements[i].first << " => " << solution.replacements[i].second << "\n";
+        }
+    }
+    cout << "Part 2 solution is < " << solution.stepsTillNow << ", currProtein [" << solution.currProtein << "]>\n";
 }
 
 
@@ -130,9 +225,21 @@ int main()
     replaceLines.pop_back();
     replaceLines.pop_back();
     string proteinLine = lines.back();
-    auto replacerMap = parseReplacers(replaceLines);
-    doPart1(proteinLine, replacerMap);
+    // auto replacerMap = parseReplacers(replaceLines);
+    // doPart1(proteinLine, replacerMap);
+    if (DEBUG_I) {
+        auto testReverseMapResult = parseReplacersReverse({
+            "e => H",
+            "e => O",
+            "H => HO",
+            "H => OH",
+            "O => HH", });
+        string testProtein = "HOHOHO";
+        cout << "Part 2 Test Run!\n";
+        doPart2(testProtein, testReverseMapResult);
+    }
+    cout << "Part 2 Real Run!\n";
     auto keySizeAndReverseReplacerMap = parseReplacersReverse(replaceLines);
+    doPart2(proteinLine, keySizeAndReverseReplacerMap);
 
-    doPart2(proteinLine, keySizeAndReverseReplacerMap.first, keySizeAndReverseReplacerMap.second);
 }
