@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <cmath>
 const bool DEBUG_V = 0;
 const bool DEBUG_I = 1;
 using namespace std;
@@ -34,7 +35,7 @@ vector<pair<int, int>> calcPrimeFactors(int number) {
     }
     return factors;
 }
-int calcSumOfDivisors(int house, int visitsPerElf) {
+int calcSumOfDivisors(int house) {
     vector<pair<int, int>> primeFactors = calcPrimeFactors(house);
     int sumOfDivisors = 1;
     for (auto factor = primeFactors.begin(); factor != primeFactors.end(); factor++) {
@@ -48,7 +49,7 @@ int calcSumOfDivisors(int house, int visitsPerElf) {
         }
         sumOfDivisors *= factorSum;
         if (DEBUG_V) {
-            cout << "using prime [" << base << "], exp [" << exponent << "], factorSum [" << factorSum << "], sumOfDivisors [" << sumOfDivisors << "]\n";
+            cout << "used prime [" << base << "], exp [" << exponent << "], factorSum [" << factorSum << "], sumOfDivisors [" << sumOfDivisors << "]\n";
         }
     }
     return sumOfDivisors;
@@ -61,9 +62,9 @@ void doPart1(int input)
     int houseNumber = 1;
     while (true) {
 
-        int presents = calcSumOfDivisors(houseNumber, -1);
+        int presents = calcSumOfDivisors(houseNumber);
         if (DEBUG_I) {
-            if (houseNumber % 100000 == 0) {
+            if (houseNumber % 10000 == 0) {
                 cout << "house [" << houseNumber << "] presents [" << presents << "]\n";
             }
         }
@@ -74,17 +75,29 @@ void doPart1(int input)
     }
     cout << "Part 1 solution is < " << houseNumber << " >\n";
 }
+int calcSumOfDivisorsNaive(int house, int visitsPerElf) {
+    int divisorSum = house;
+    int lowestElf = 1;
+    if (visitsPerElf != -1) {
+        lowestElf = max(1, (int)ceil((double)house / (double)visitsPerElf));
+    }
+    for (int elfNumber = house / 2; elfNumber >= lowestElf; elfNumber--) {
+        if (house % elfNumber == 0) {
+            divisorSum += elfNumber;
+        }
+    }
+    return divisorSum;
+}
 
 void doPart2(int input)
 {
-    cout << "Start Part 1\n";
     int neededPresents = input / 11;
     int houseNumber = 1;
     while (true) {
 
-        int presents = calcSumOfDivisors(houseNumber, 50);
+        int presents = calcSumOfDivisorsNaive(houseNumber, 50);
         if (DEBUG_I) {
-            if (houseNumber % 1000 == 0) {
+            if (houseNumber % 10000 == 0) {
                 cout << "house [" << houseNumber << "] presents [" << presents << "]\n";
             }
         }
@@ -96,17 +109,45 @@ void doPart2(int input)
     cout << "Part 2 solution is < " << houseNumber << " >\n";
 }
 
+void testSumOfDivisors(int divisee, int maxDivisorUse, int expected) {
+    if (expected == -1) {
+        expected = calcSumOfDivisorsNaive(divisee, maxDivisorUse);
+    }
+    int sum;
+    if (maxDivisorUse == -1) {
+        sum = calcSumOfDivisors(divisee);
+    }
+    else {
+        sum = calcSumOfDivisorsNaive(divisee, maxDivisorUse);
+    }
+    cout << "calcSumOfDivisors(" << divisee << ") == " << expected << " [" << (sum == expected) << "]\n";
+    if (!(sum == expected)) {
+        cout << "calcSumOfDivisors(" << divisee << ") = [" << sum << "]\n";
+        throw 0;
+    }
+}
+
 int main()
 {
     cout << "Day 20\n";
     int input = 36000000;
-    if (DEBUG_I) {
-        cout << "calcSumOfDivisors(1800) == 6045 [" << (calcSumOfDivisors(1800, -1) == 6045) << "]\n";
-        if (!(calcSumOfDivisors(1800, -1) == 6045)) {
-            cout << "calcSumOfDivisors(1800) = [" << calcSumOfDivisors(1800, -1) << "]\n";
-            return -1;
-        }
+ if (DEBUG_I) {
+        testSumOfDivisors(1800, -1, 6045);
+        testSumOfDivisors(3600, -1, 12493);
+        testSumOfDivisors(54000, -1, 193440);
+        testSumOfDivisors(5400, -1, 18600);
+        testSumOfDivisors(14400, -1, 51181);
+        testSumOfDivisors(831600, -1, -1);
     }
     doPart1(input);
-    // doPart2(input);
+    if (DEBUG_I) {
+        cout << "Start Part 2\n";
+        testSumOfDivisors(1800, 10, -1);
+        testSumOfDivisors(3600, 10, -1);
+        testSumOfDivisors(54000, 10, -1);
+        testSumOfDivisors(5400, 10, -1);
+        testSumOfDivisors(14400, 10, -1);
+        testSumOfDivisors(884520, 50, -1);
+    }
+    doPart2(input);
 }
