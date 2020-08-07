@@ -31,6 +31,9 @@ vector<pair<int, int>> calcPrimeFactors(int number) {
                 timesCurrDivisor = 0;
             }
             currDivisor++;
+            if (currDivisor * currDivisor > curr) {
+                currDivisor == curr;
+            }
         }
     }
     return factors;
