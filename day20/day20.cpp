@@ -2,7 +2,7 @@
 #include <vector>
 #include <cmath>
 const bool DEBUG_V = 0;
-const bool DEBUG_I = 1;
+const bool DEBUG_I = 0;
 using namespace std;
 
 vector<pair<int, int>> calcPrimeFactors(int number) {
@@ -35,6 +35,55 @@ vector<pair<int, int>> calcPrimeFactors(int number) {
     }
     return factors;
 }
+
+void addDivisorsRec(vector<int> &chosenFactors, vector<pair<int, int>> &factorsLeft, vector<int> &allFactors, int minDivisorSize) {
+    if (factorsLeft.size() == 0) {
+        int multiplied = 1;
+        for (int i = 0; i < chosenFactors.size(); i++) {
+            multiplied *= chosenFactors[i];
+        }
+
+        if (multiplied >= minDivisorSize) {
+            if (DEBUG_V) {
+                cout << "adding factor [" << multiplied << "]\n";
+            }
+            allFactors.push_back(multiplied);
+        }
+        else {
+            if (DEBUG_V) {
+                cout << "skipping factor [" << multiplied << "]\n";
+            }
+        }
+        return;
+    }
+    pair<int, int> newMutator = factorsLeft.back();
+    vector<pair<int, int>> newFactorsLeft = factorsLeft;
+    newFactorsLeft.pop_back();
+    int currPower = 1;
+    for (int i = 0; i <= newMutator.second; i++) {
+        vector<int> newChosenFactors = chosenFactors;
+        newChosenFactors.push_back(currPower);
+        addDivisorsRec(newChosenFactors, newFactorsLeft, allFactors, minDivisorSize);
+        currPower *= newMutator.first;
+    }
+}
+
+int calcSumOfHighestDivisors(int house, int maxDivisorUse) {
+    int minDivisorSize = house / maxDivisorUse;
+    if (house % maxDivisorUse != 0) {
+        minDivisorSize++;
+    }
+    vector<pair<int, int>> primeFactors = calcPrimeFactors(house);
+    int sumOfDivisors = 0;
+    vector<int> divisors;
+    vector<int> start;
+    addDivisorsRec(start, primeFactors, divisors, minDivisorSize);
+    for (auto divisor = divisors.begin(); divisor != divisors.end(); divisor++) {
+        sumOfDivisors += *divisor;
+    }
+    return sumOfDivisors;
+}
+
 int calcSumOfDivisors(int house) {
     vector<pair<int, int>> primeFactors = calcPrimeFactors(house);
     int sumOfDivisors = 1;
@@ -92,10 +141,9 @@ int calcSumOfDivisorsNaive(int house, int visitsPerElf) {
 void doPart2(int input)
 {
     int neededPresents = input / 11;
-    int houseNumber = 1;
+    int houseNumber = ceil(sqrt(input));
     while (true) {
-
-        int presents = calcSumOfDivisorsNaive(houseNumber, 50);
+        int presents = calcSumOfHighestDivisors(houseNumber, 50);
         if (DEBUG_I) {
             if (houseNumber % 10000 == 0) {
                 cout << "house [" << houseNumber << "] presents [" << presents << "]\n";
@@ -118,7 +166,7 @@ void testSumOfDivisors(int divisee, int maxDivisorUse, int expected) {
         sum = calcSumOfDivisors(divisee);
     }
     else {
-        sum = calcSumOfDivisorsNaive(divisee, maxDivisorUse);
+        sum = calcSumOfHighestDivisors(divisee, maxDivisorUse);
     }
     cout << "calcSumOfDivisors(" << divisee << ") == " << expected << " [" << (sum == expected) << "]\n";
     if (!(sum == expected)) {
@@ -131,7 +179,7 @@ int main()
 {
     cout << "Day 20\n";
     int input = 36000000;
- if (DEBUG_I) {
+    if (DEBUG_I) {
         testSumOfDivisors(1800, -1, 6045);
         testSumOfDivisors(3600, -1, 12493);
         testSumOfDivisors(54000, -1, 193440);
