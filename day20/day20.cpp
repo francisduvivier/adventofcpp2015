@@ -20,16 +20,17 @@ int calcSumOfDivisors(int house, int visitsPerElf) {
 void doPart1(int input)
 {
     cout << "Start Part 1\n";
-    int houseNumber = (int)sqrt(input / 10);
+    int neededPresents = input / 10;
+    int houseNumber = (int)sqrt(neededPresents);
     while (true) {
 
-        int presents = calcSumOfDivisors(houseNumber, -1) * 10;
+        int presents = calcSumOfDivisors(houseNumber, -1);
         if (DEBUG_I) {
             if (houseNumber % 1000 == 0) {
                 cout << "house [" << houseNumber << "] presents [" << presents << "]\n";
             }
         }
-        if (presents >= input) {
+        if (presents >= neededPresents) {
             break;
         }
         houseNumber++;
@@ -40,16 +41,17 @@ void doPart1(int input)
 void doPart2(int input)
 {
     cout << "Start Part 1\n";
-    int houseNumber = (int)sqrt(input / 11);
+    int neededPresents = input / 11;
+    int houseNumber = (int)sqrt(neededPresents);
     while (true) {
 
-        int presents = calcSumOfDivisors(houseNumber, 50) * 11;
+        int presents = calcSumOfDivisors(houseNumber, 50);
         if (DEBUG_I) {
             if (houseNumber % 1000 == 0) {
                 cout << "house [" << houseNumber << "] presents [" << presents << "]\n";
             }
         }
-        if (presents >= input) {
+        if (presents >= neededPresents) {
             break;
         }
         houseNumber++;
