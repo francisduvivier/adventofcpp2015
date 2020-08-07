@@ -1,15 +1,18 @@
 #include <iostream>
-#include "../util/processing.h"
+#include <math.h>
 const bool DEBUG_V = 0;
-const bool DEBUG_I = 1;
+const bool DEBUG_I = 0;
 using namespace std;
-int calcSumOfDivisors(int integer) {
-    int divisorSum = 0;
-    int sumOperands = 0;
-    for (int elveNumber = integer; elveNumber > 0 ; elveNumber--) {
-        if (integer % elveNumber == 0) {
-            divisorSum += elveNumber;
-            sumOperands++;
+
+int calcSumOfDivisors(int house, int visitsPerElf) {
+    int divisorSum = house;
+    int lowestElf = 1;
+    if (visitsPerElf != -1) {
+        lowestElf = max(1, (int)ceil((double)house / (double)visitsPerElf));
+    }
+    for (int elfNumber = house / 2; elfNumber >= lowestElf; elfNumber--) {
+        if (house % elfNumber == 0) {
+            divisorSum += elfNumber;
         }
     }
     return divisorSum;
@@ -17,10 +20,10 @@ int calcSumOfDivisors(int integer) {
 void doPart1(int input)
 {
     cout << "Start Part 1\n";
-    int houseNumber = 1;
+    int houseNumber = (int)sqrt(input / 10);
     while (true) {
 
-        int presents = calcSumOfDivisors(houseNumber) * 10;
+        int presents = calcSumOfDivisors(houseNumber, -1) * 10;
         if (DEBUG_I) {
             if (houseNumber % 1000 == 0) {
                 cout << "house [" << houseNumber << "] presents [" << presents << "]\n";
@@ -34,9 +37,34 @@ void doPart1(int input)
     cout << "Part 1 solution is < " << houseNumber << " >\n";
 }
 
+void doPart2(int input)
+{
+    cout << "Start Part 1\n";
+    int houseNumber = (int)sqrt(input / 11);
+    while (true) {
+
+        int presents = calcSumOfDivisors(houseNumber, 50) * 11;
+        if (DEBUG_I) {
+            if (houseNumber % 1000 == 0) {
+                cout << "house [" << houseNumber << "] presents [" << presents << "]\n";
+            }
+        }
+        if (presents >= input) {
+            break;
+        }
+        houseNumber++;
+    }
+    cout << "Part 2 solution is < " << houseNumber << " >\n";
+}
+
 int main()
 {
     cout << "Day 20\n";
     int input = 36000000;
     doPart1(input);
+    doPart2(input);
 }
+
+
+// Better Solution:
+// First calculate the prime factorization and then use that for finding all divisors, then make the sum of the once that time 50 are bigger or equal to the housenumber.
