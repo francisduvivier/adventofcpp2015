@@ -3,7 +3,7 @@
 #include <iostream>
 #include <set>
 #include "../util/processing.h"
-const bool DEBUG_V = 1;
+const bool DEBUG_V = 0;
 const bool DEBUG_I = 1;
 using namespace std;
 
@@ -94,118 +94,151 @@ struct ValidationData
     vector<pair<string, string>> replacements;
     string currProtein;
 };
-map<string, int> tried;
 
 using RecursionSolution = ValidationData;
 using RecursionStateData = ValidationData;
 using RecursionOptions = vector<pair<string, string>>;
-using RecursionOption = int;
-void updateValidationData(RecursionStateData &validationData, RecursionOptions &remainingOptions, RecursionOption choice, vector<RecursionStateData> &optionsHolder)
+int updateValidationData(RecursionStateData &validationData, RecursionOptions &remainingOptions, int choice, int searchPos, map<string, int> &tried)
 {
-    auto replaceInfo = remainingOptions[choice];
-    if (DEBUG_V) {
-        cout << "S updateValidationData: , replaceInfo {" << replaceInfo.first << " => " << replaceInfo.second << "}, nbRepl [" << validationData.replacements.size() << "], currProt [" << validationData.currProtein << "]\n";
+    if (searchPos >= validationData.currProtein.length()) {
+        if (DEBUG_V) {
+            cout << "searchPos >= validationData.currProtein.length()\n";
+        }
+        return string::npos;
     }
-    auto currProteinOptions = replaceAll(validationData.currProtein, replaceInfo);
-    for (auto it = currProteinOptions.begin(); it != currProteinOptions.end(); it++) {
-        if (tried.find(*it) == tried.end() || tried[*it] > validationData.stepsTillNow + 1) {
-            tried[*it] = validationData.stepsTillNow + 1;
-            RecursionStateData newState = validationData;
-            newState.currProtein = *it;
-            newState.replacements.push_back(replaceInfo);
-            newState.stepsTillNow++;
-            optionsHolder.push_back(newState);
+    auto replaceInfo = remainingOptions[choice];
+    string &currString = validationData.currProtein;
+    int findResult = currString.find(replaceInfo.first, searchPos);
+    if (findResult != string::npos) {
+        string newString = currString;
+        newString = newString.replace(findResult, replaceInfo.first.length(), replaceInfo.second);
+        if (tried.find(newString) == tried.end() || tried[newString] > validationData.stepsTillNow + 1 && (newString.length() == 1 || newString.find('e') == string::npos)) {
+            tried[newString] = validationData.stepsTillNow + 1;
+            validationData.currProtein = newString;
+            validationData.replacements.push_back(replaceInfo);
+            validationData.stepsTillNow++;
+            return findResult + replaceInfo.first.length();
+        }
+
+        if (DEBUG_V) {
+            cout << "E updateValidationData: , replaceInfo {" << replaceInfo.first << " => " << replaceInfo.second << "}, nbRepl [" << validationData.replacements.size() << "], currProt [" << currString << "]\n";
         }
     }
-    if (DEBUG_V) {
-        cout << "E updateValidationData: , replaceInfo {" << replaceInfo.first << " => " << replaceInfo.second << "}, nbRepl [" << validationData.replacements.size() << "], currProt [" << validationData.currProtein << "]\n";
-    }
+    return string::npos;
 }
 
-int bestOptionTillNow = INT32_MAX;
+int maxSteps = 300;
 bool isOkOption(RecursionStateData &validationData)
 {
-    if (validationData.currProtein.compare(validationData.neededAtom) == 0) {
-        if (bestOptionTillNow >= validationData.stepsTillNow) {
-            bestOptionTillNow = validationData.stepsTillNow;
-            if (DEBUG_I) {
-                cout << "found Ok option\n";
-            }
-            return true;
-        }
-    }
-    return false;
+    return  (validationData.currProtein.length() == 1 && validationData.currProtein[0] == 'e');
 }
-RecursionSolution findShortestPathRec(RecursionStateData &validationData, RecursionOptions &replaceOptions)
+int currMaxLevel = 0;
+int currMinBackTrackLevel = -1;
+RecursionSolution findShortestPath(RecursionStateData &validationData, RecursionOptions &replaceOptions)
 {
-    if (DEBUG_V) {
-        cout << "into findShortestPathRec  level [" << validationData.stepsTillNow << "], currProti [" << validationData.currProtein << "]\n";
-    }
-    if (bestOptionTillNow <= validationData.stepsTillNow) {
-        if (DEBUG_V) {
-            cout << "bestOptionTillNow <= validationData.stepsTillNow , nbRepl [" << validationData.replacements.size() << "]\n";;
-        }
-        return validationData;
-    }
-    if (isOkOption(validationData))
+    int currLevel = 0;
+    vector<int> optionPerLevel{ 0 };
+    vector<int> searchPosPerLevel{ 0 };
+    vector<ValidationData> prevStatePerLevel{ validationData };
+    map<string, int> tried;
+    while (currLevel < maxSteps)
     {
         if (DEBUG_V) {
-            cout << "isOkOption(validationData)]\n";;
+            cout << "starting Level [" << currLevel << "]\n";
         }
-        return validationData;
-    }
-    else
-    {
-        RecursionSolution bestOption;
-        bestOption.stepsTillNow = INT32_MAX;
-        vector<ValidationData> allOptions;
-        for (int i = 0; i < replaceOptions.size(); i++)
+        int oldLevel = validationData.stepsTillNow;
+        while (oldLevel == validationData.stepsTillNow && optionPerLevel[currLevel] < replaceOptions.size())
         {
-            updateValidationData(validationData, replaceOptions, i, allOptions);
-        }
-        if (DEBUG_V) {
-            cout << "allOptions.size() [" << allOptions.size() << "]\n";
-        }
-        for (int j = 0; j < allOptions.size(); j++) {
-            ValidationData newValidationData = allOptions[j];
-            if (validationData.currProtein.compare(newValidationData.currProtein) == 0) {
+            if (DEBUG_V) {
+                cout << "Doing replace first [" << replaceOptions[optionPerLevel[currLevel]].first << "] in [" << validationData.currProtein << "]\n";
+            }
+            int pos = updateValidationData(validationData, replaceOptions, optionPerLevel[currLevel], searchPosPerLevel[currLevel], tried);
+            if (pos == -1) {
+                optionPerLevel[currLevel]++;
+                searchPosPerLevel[currLevel] = 0;
+            }
+            else {
+                searchPosPerLevel[currLevel] = pos;
                 if (DEBUG_V) {
-                    cout << "updateValidationData: , same: currProts [" << validationData.currProtein << "], j [" << j << "]\n";
+                    cout << "Done replace first [" << replaceOptions[optionPerLevel[currLevel]].first << "] in [" << validationData.currProtein << "]\n";
                 }
-                continue;
-            }
-            RecursionSolution currOption = findShortestPathRec(newValidationData, replaceOptions);
-            if (currOption.stepsTillNow < bestOption.stepsTillNow) {
-                bestOption = currOption;
             }
         }
         if (DEBUG_V) {
-            cout << "outo findShortestPathRec  level [" << validationData.stepsTillNow << "], currProto [" << validationData.currProtein << "]\n";
+            cout << "did while Level [" << currLevel << "]\n";
         }
-        return bestOption;
+        if (isOkOption(validationData)) {
+            break;
+        }
+        if (optionPerLevel[currLevel] == replaceOptions.size()) {
+            if (currLevel == 0) {
+                cout << "Tried everything!\n";
+                break;
+            }
+            if (DEBUG_V) {
+                cout << "stuck at [" << validationData.currProtein << "]\n";
+            }
+            currLevel--;
+            if (DEBUG_I) {
+                if (currLevel < currMinBackTrackLevel || currMinBackTrackLevel == -1) {
+                    currMinBackTrackLevel = currLevel;
+                    cout << "currMinBackTrackLevel changed to [" << currMinBackTrackLevel << "]\n";
+                }
+            }
+            prevStatePerLevel.pop_back();
+            validationData = prevStatePerLevel.back();
+            optionPerLevel.pop_back();
+            searchPosPerLevel.pop_back();
+        }
+        else {
+            currLevel++;
+            if (DEBUG_I) {
+                if (currLevel > currMaxLevel) {
+                    currMaxLevel = currLevel;
+                    cout << "Max Level increased to [" << currMaxLevel << "]\n";
+                }
+            }
+            prevStatePerLevel.push_back(validationData);
+            if (currLevel == optionPerLevel.size()) {
+                optionPerLevel.push_back(0);
+                searchPosPerLevel.push_back(0);
+            }
+            else {
+                optionPerLevel[currLevel] = 0;
+                searchPosPerLevel[currLevel] = 0;
+            }
+        }
     }
+    return validationData;
 }
 
 void doPart2(string &startProtein, RevInfoMap &replacerMap)
 {
+    currMaxLevel = 0;
+    currMinBackTrackLevel = -1;
     string currProtein = startProtein;
     bool foundSolution = false;
     RecursionSolution solution;
     int  MAX_ALLOWED = 10;
-    for (int maxSteps = 1; !foundSolution && maxSteps <= MAX_ALLOWED; maxSteps++) {
-        if (DEBUG_I) {
-            cout << "trying with maxSteps [" << maxSteps << "]\n";
+
+    RecursionStateData  startState{ "e", 0, {}, currProtein };
+    RecursionOptions options;
+    for (auto it = replacerMap.begin(); it != replacerMap.end(); it++) {
+        for (auto optPointer = options.begin(); optPointer != options.end() + 1; optPointer++) {
+            if (optPointer == options.end()) {
+                options.push_back(*it);
+                break;
+            }
+            else if (optPointer->first.length() > it->first.length()) {
+                options.insert(optPointer, *it);
+                break;
+            }
         }
-        bestOptionTillNow = maxSteps + 1;
-        tried.clear();
-        RecursionStateData  startState{ "e", 0, {}, currProtein };
-        RecursionOptions options;
-        for (auto it = replacerMap.begin(); it != replacerMap.end(); it++) {
-            options.push_back(*it);
-        }
-        solution = findShortestPathRec(startState, options);
-        foundSolution = isOkOption(solution);
     }
+
+    solution = findShortestPath(startState, options);
+    foundSolution = isOkOption(solution);
+
     if (DEBUG_I) {
         for (int i = 0; i < solution.replacements.size(); i++) {
             cout << "Winning step: " << solution.replacements[i].first << " => " << solution.replacements[i].second << "\n";
