@@ -4,7 +4,7 @@
 #include <set>
 #include "../util/processing.h"
 const bool DEBUG_V = 0;
-const bool DEBUG_I = 1;
+const bool DEBUG_I = 0;
 using namespace std;
 
 using InfoMap = map<string, vector<string>>;
@@ -132,10 +132,10 @@ bool isOkOption(RecursionStateData &validationData)
 {
     return  (validationData.currProtein.length() == 1 && validationData.currProtein[0] == 'e');
 }
-int currMaxLevel = 0;
-int currMinBackTrackLevel = -1;
 RecursionSolution findShortestPath(RecursionStateData &validationData, RecursionOptions &replaceOptions)
 {
+    int currMaxLevel = 0;
+    int currMinBackTrackLevel = -1;
     int currLevel = 0;
     vector<int> optionPerLevel{ 0 };
     vector<int> searchPosPerLevel{ 0 };
@@ -212,10 +212,12 @@ RecursionSolution findShortestPath(RecursionStateData &validationData, Recursion
     return validationData;
 }
 
+int moleculeSize(string molecule) {
+    string capitals = regex_replace(molecule, regex("[a-z]"), "");
+    return capitals.length();
+}
 void doPart2(string &startProtein, RevInfoMap &replacerMap)
 {
-    currMaxLevel = 0;
-    currMinBackTrackLevel = -1;
     string currProtein = startProtein;
     bool foundSolution = false;
     RecursionSolution solution;
@@ -229,13 +231,17 @@ void doPart2(string &startProtein, RevInfoMap &replacerMap)
                 options.push_back(*it);
                 break;
             }
-            else if (optPointer->first.length() > it->first.length()) {
+            else if (moleculeSize(optPointer->first) < moleculeSize(it->first)) {
                 options.insert(optPointer, *it);
                 break;
             }
         }
     }
-
+    if (DEBUG_V) {
+        for (auto it = options.begin(); it < options.end(); it++) {
+            cout << "option: [" << it->first << "]";
+        }
+    }
     solution = findShortestPath(startState, options);
     foundSolution = isOkOption(solution);
 
@@ -258,8 +264,8 @@ int main()
     replaceLines.pop_back();
     replaceLines.pop_back();
     string proteinLine = lines.back();
-    // auto replacerMap = parseReplacers(replaceLines);
-    // doPart1(proteinLine, replacerMap);
+    auto replacerMap = parseReplacers(replaceLines);
+    doPart1(proteinLine, replacerMap);
     if (DEBUG_I) {
         auto testReverseMapResult = parseReplacersReverse({
             "e => H",
@@ -270,9 +276,15 @@ int main()
         string testProtein = "HOHOHO";
         cout << "Part 2 Test Run!\n";
         doPart2(testProtein, testReverseMapResult);
+        cout << "Part 2 Real Run!\n";
     }
-    cout << "Part 2 Real Run!\n";
     auto keySizeAndReverseReplacerMap = parseReplacersReverse(replaceLines);
     doPart2(proteinLine, keySizeAndReverseReplacerMap);
 
 }
+
+// Better solution proposition:
+// For every level, we go through the molecule from left to right, every time trying to match the longest molecule from that position, we continue that, until we suddenly cannot match anything, then we backtrack to the last replacement and try the next. If we have reached the end of the string, then we apply all changes, adding them all as different steps and do the same for the next level.
+// The level would then not be the same as the steps anymore.
+// If we cannot replace anything anymore at some level, we need to backtrack one level, to do this backtracking. , we need to be able to choose the next option for a level, to make that possible we need to keep the state of where we were in a previous level and we need to be able to continue from that.
+// For that, we need all the replacements as positions in the optionList per level, we can then start from the last position in a level and take th next one, if pos == optLenght, we reset the pos and go back to the previous replacment choice in that level.
