@@ -95,49 +95,55 @@ bool getWinner(Character &player, Character &boss) {
     }
     return (boss.hitPts <= 0);
 }
-int findCheapestWin(Character &boss, Character &player, Shop &shop) {
-    int minCost = INT32_MAX;
+pair<int, int> findPrices(Character &boss, Character &player, Shop &shop) {
+    int minWinCost = INT32_MAX;
+    int maxLoseCost = 0;
     for (int w = 0; w < shop.weapons.size(); w++) {
-        if (getCost(getItems(shop, { w, -1, -1, -1 })) > minCost) {
-            continue;
-        }
         for (int a = 0; a < shop.armors.size() + 1; a++) {
-            if (getCost(getItems(shop, { w, a, -1, -1 })) > minCost) {
-                continue;
-            }
             for (int r1 = 0; r1 < shop.rings.size() + 1; r1++) {
-                if (getCost(getItems(shop, { w, a, r1, -1 })) > minCost) {
-                    continue;
-                }
                 for (int r2 = r1 + 1; r2 < shop.rings.size() + 2; r2++) {
                     vector<Accessory> items = getItems(shop, { w, a, r1, r2 });
                     if (DEBUG_V) {
                         cout << "w [" << w << "] a [" << a << "] r1 [" << r1 << "] r2 [" << r2 << "]\n";
                     }
                     int newCost = getCost(items);
-                    if (newCost > minCost) {
-                        continue;
-                    }
                     Character equippedFighter = equipFighter(player, items);
                     Character bossCopy = boss;
                     if (getWinner(equippedFighter, bossCopy)) {
-                        if (DEBUG_I) {
-                            cout << "CurrBest [" << newCost << "]: ";
-                            cout << "w [" << items[0].name << "] a [" << items[1].name << "] r1 [" << items[2].name << "] r2 [" << items[3].name << "]\n";
+                        if (minWinCost > newCost) {
+                            if (DEBUG_I) {
+                                cout << "CurrBest minWinCost [" << newCost << "]: ";
+                                cout << "w [" << items[0].name << "] a [" << items[1].name << "] r1 [" << items[2].name << "] r2 [" << items[3].name << "]\n";
+                            }
+                            minWinCost = newCost;
                         }
-                        minCost = newCost;
+                    }
+                    else {
+                        if (maxLoseCost < newCost) {
+                            if (DEBUG_I) {
+                                cout << "CurrBest maxLoseCost [" << newCost << "]: ";
+                                cout << "w [" << items[0].name << "] a [" << items[1].name << "] r1 [" << items[2].name << "] r2 [" << items[3].name << "]\n";
+                            }
+                            maxLoseCost = newCost;
+                        }
                     }
                 }
             }
         }
 
     }
-    return minCost;
+    return { minWinCost, maxLoseCost };
 }
-void doPart1(Character & boss, Character & figther, Shop & shop) {
-    cout << "--- Part 1 ---\n";
-    int cheapestWinPrice = findCheapestWin(boss, figther, shop);
-    cout << "Part 1 solution is " << cheapestWinPrice << "\n";
+void doPart1And2(Character & boss, Character & figther, Shop & shop) {
+    pair<int, int> res = findPrices(boss, figther, shop);
+    cout << "Part 1 solution is " << res.first << "\n";
+    cout << "Part 2 solution is " << res.second << "\n";
+
+}
+void doPart2(Character & boss, Character & figther, Shop & shop) {
+    cout << "--- Part 2 ---\n";
+
+    int highestLosePrice = findPrices(boss, figther, shop).second;
 }
 
 int main()
@@ -172,5 +178,6 @@ int main()
     Character boss{ "!boss!", 100, 8, 2 };
     Character player{ "player", 100, 0, 0 };
 
-    doPart1(boss, player, shop);
+    doPart1And2(boss, player, shop);
+
 }
