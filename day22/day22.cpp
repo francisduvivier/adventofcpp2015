@@ -118,8 +118,11 @@ bool effectActive(Attack &attack, vector<Attack> &effects) {
     }
     return false;
 }
-pair<int, vector<Attack>>  doFightRec(vector<Attack> chosen, Character boss, Character player, vector<Attack> effects, int manaUsed, int maxMana, bool bossTurn) {
+pair<int, vector<Attack>>  doFightRec(vector<Attack> chosen, Character boss, Character player, vector<Attack> effects, int manaUsed, int maxMana, bool bossTurn, bool hard = false) {
     Character buffedPlayer = player;
+    if (hard && !bossTurn) {
+        buffedPlayer.hitPts--;
+    }
     if (isDead(buffedPlayer)) {
         return { -1, { chosen } };
     }
@@ -164,7 +167,7 @@ pair<int, vector<Attack>>  doFightRec(vector<Attack> chosen, Character boss, Cha
         doAttack(*attack, attacker, receiver, newEffects);
         int currMax = winningSolution.first == -1 ? maxMana : winningSolution.first;
 
-        auto res = doFightRec(newChosen, bossWithAttack, playerWithAttack, newEffects, totalManaUsed, currMax, !bossTurn);
+        auto res = doFightRec(newChosen, bossWithAttack, playerWithAttack, newEffects, totalManaUsed, currMax, !bossTurn, hard);
         int lowestWinningManaRec = res.first;
         if (winningSolution.first == -1 || lowestWinningManaRec != -1 && lowestWinningManaRec < winningSolution.first) {
             winningSolution = res;
@@ -202,6 +205,18 @@ void doPart1(Character & boss, Character &player) {
     cout << "Part 1 solution is " << lowestMana << "\n";
 }
 
+void doPart2(Character & boss, Character &player) {
+    int lowestMana = -1;
+    for (int currMaxMana = 1000; lowestMana == -1; currMaxMana += 500) {
+        if (DEBUG_I) {
+            cout << "Trying with max Mana [" << currMaxMana << "]\n";
+        }
+        auto res = doFightRec({}, boss, player, {}, 0, currMaxMana, false, true);
+        lowestMana = res.first;
+    }
+    cout << "Part 2 solution is " << lowestMana << "\n";
+}
+
 int main()
 {
     cout << "--- Day 21: RPG Simulator 20XX ---\n";
@@ -209,5 +224,6 @@ int main()
     bossAttacks[0].dmg = boss.dmg;
     Character player{ "player", 50, 0, 0, 500 };
     doPart1(boss, player);
+    doPart2(boss, player);
 
 }
