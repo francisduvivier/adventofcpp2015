@@ -1,4 +1,4 @@
-CURR_DAY="day23"
+CURR_DAY="day24"
 CURR_COMPILE_INPUT="$CURR_DAY/*.cpp util/*"
 if [ "$DEBUG" == 1 ]
 then 
