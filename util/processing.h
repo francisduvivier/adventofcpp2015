@@ -10,6 +10,7 @@
 using namespace std;
 
 void splitString(const string &input, const string &delimiter, vector<string> &stringArray);
+vector<int> splitStringToInts(const string &input, const string &delimiter);
 
 string getInput(int day);
 

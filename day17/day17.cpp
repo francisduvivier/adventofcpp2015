@@ -6,15 +6,7 @@
 using namespace std;
 const bool DEBUG_V = 0;
 const bool DEBUG_I = 0;
-vector<int> processInput(vector<string> &lines)
-{
-    vector<int> inputs;
-    for (int i = 0; i < lines.size(); i++)
-    {
-        inputs.push_back(stoi(lines[i]));
-    }
-    return inputs;
-}
+
 struct ValidationData
 {
     vector<int> otherNumbers;
@@ -72,9 +64,7 @@ int main()
 {
     cout << "Day 17\n";
     string input = getInput(17);
-    vector<string> lines;
-    splitString(input, "\n", lines);
-    vector<int> numbers = processInput(lines);
+    vector<int> numbers = splitStringToInts(input, "\n");
     int neededSum = 150;
     RecursionStateData startState;
     startState.neededSum = neededSum;

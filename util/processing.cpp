@@ -50,3 +50,18 @@ void splitString(const string &input, const string &delimiter, vector<string> &s
     }
     stringArray.push_back(input.substr(startIndex, input.size()));
 }
+
+vector<int> splitStringToInts(const string &input, const string &delimiter)
+{
+    vector<int> intArray;
+    int startIndex = 0;
+    int endIndex = input.find_first_of(delimiter);
+    while (endIndex != string::npos)
+    {
+        intArray.push_back(stoi(input.substr(startIndex, endIndex - startIndex)));
+        startIndex = endIndex + 1;
+        endIndex = input.find_first_of(delimiter, startIndex);
+    }
+    intArray.push_back(stoi(input.substr(startIndex, input.size())));
+    return intArray;
+}
