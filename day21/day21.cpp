@@ -117,8 +117,7 @@ pair<int, int> findPrices(Character &boss, Character &player, Shop &shop) {
                             }
                             minWinCost = newCost;
                         }
-                    }
-                    else {
+                    } else {
                         if (maxLoseCost < newCost) {
                             if (DEBUG_I) {
                                 cout << "CurrBest maxLoseCost [" << newCost << "]: ";
@@ -139,11 +138,6 @@ void doPart1And2(Character & boss, Character & figther, Shop & shop) {
     cout << "Part 1 solution is " << res.first << "\n";
     cout << "Part 2 solution is " << res.second << "\n";
 
-}
-void doPart2(Character & boss, Character & figther, Shop & shop) {
-    cout << "--- Part 2 ---\n";
-
-    int highestLosePrice = findPrices(boss, figther, shop).second;
 }
 
 int main()
