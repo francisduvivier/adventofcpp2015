@@ -11,16 +11,14 @@ public:
     int instructionPointer = 0;
 };
 class Instruction {
-protected:
-    VM &vm;
 public:
     vector<int> args;
     string name = "Instruction";
-    virtual void run() {
-        cout << " DOING Instruction run()\n";
+    virtual void run(VM & vm) {
+        cout << " Calling wrong Instruction run()\n";
         throw 1;
     };
-    Instruction(vector<int> a, VM &b) :args(a), vm(b) {
+    Instruction(vector<int> a): args(a) {
 
     };
 };
@@ -33,10 +31,10 @@ public:
 class hlf : public Instruction {
     // r sets register r to half its current value, then continues with the next instruction.
 public:
-    hlf(vector<int> a, VM &b) :Instruction(a, b) {
+    hlf(vector<int> a) :Instruction(a) {
         name = "hlf";
     }
-    void run() {
+    void run(VM &vm) {
         vm.registers[args[0]] = vm.registers[args[0]] / 2;
         vm.instructionPointer++;
     }
@@ -44,10 +42,10 @@ public:
 class tpl : public Instruction {
     // r sets register r to triple its current value, then continues with the next instruction.
 public:
-    tpl(vector<int> a, VM &b) :Instruction(a, b) {
+    tpl(vector<int> a) :Instruction(a) {
         name = "tpl";
     }
-    void run() {
+    void run(VM &vm) {
         vm.registers[args[0]] = vm.registers[args[0]] * 3;
         vm.instructionPointer++;
     }
@@ -55,10 +53,10 @@ public:
 class inc : public Instruction {
     // r increments register r, adding 1 to it, then continues with the next instruction.
 public:
-    inc(vector<int> a, VM &b) :Instruction(a, b) {
+    inc(vector<int> a) :Instruction(a) {
         name = "inc";
     }
-    void run() {
+    void run(VM &vm) {
         if (args.size() != 1) {
             cout << "inc: invalid args size: [" << args.size() << "]\n";
             throw 1;
@@ -70,20 +68,20 @@ public:
 class jmp : public Instruction {
     // offset is a jump; it continues with the instruction offset away relative to itself.
 public:
-    jmp(vector<int> a, VM &b) :Instruction(a, b) {
+    jmp(vector<int> a) :Instruction(a) {
         name = "jmp";
     }
-    void run() {
+    void run(VM &vm) {
         vm.instructionPointer += args[0];
     }
 };
 class jie : public Instruction {
     // r, offset is like jmp, but only jumps if register r is even ("jump if even").
 public:
-    jie(vector<int> a, VM &b) :Instruction(a, b) {
+    jie(vector<int> a) :Instruction(a) {
         name = "jie";
     }
-    void run() {
+    void run(VM &vm) {
         if (vm.registers[args[0]] % 2 == 0) {
             vm.instructionPointer += args[1];
         }
@@ -95,10 +93,10 @@ public:
 class jio : public Instruction {
     // r, offset is like jmp, but only jumps if register r is 1 ("jump if one", not odd).
 public:
-    jio(vector<int> a, VM &b) :Instruction(a, b) {
+    jio(vector<int> a) :Instruction(a) {
         name = "jio";
     }
-    virtual void run() override {
+    virtual void run(VM &vm) override {
         if (vm.registers[args[0]] == 1) {
             vm.instructionPointer += args[1];
         }
@@ -108,33 +106,19 @@ public:
     }
 };
 
-void doPart1(vector<Instruction *> &instructions, VM &vm) {
+void runVM(vector<Instruction *> &instructions, VM &vm) {
     while (vm.instructionPointer < instructions.size()) {
         if (DEBUG_I) {
             cout << "doing instruction " << instructions[vm.instructionPointer]->name << ", args[0] [" << instructions[vm.instructionPointer]->args[0] << "]\n";
         }
-        instructions[vm.instructionPointer]->run();
+        instructions[vm.instructionPointer]->run(vm);
         if (DEBUG_I) {
             cout << "curr pointer [" << vm.instructionPointer << "], regs a[" << vm.registers[0] << "] b[" << vm.registers[1] << "]\n";
         }
     }
-    cout << "Part 1 solution is " << vm.registers['b' - 'a'] << "\n";
 }
 
-void doPart2(vector<Instruction *> &instructions, VM &vm) {
-    vm.registers[0] = 1;
-    while (vm.instructionPointer < instructions.size()) {
-        if (DEBUG_I) {
-            cout << "doing instruction " << instructions[vm.instructionPointer]->name << ", args[0] [" << instructions[vm.instructionPointer]->args[0] << "]\n";
-        }
-        instructions[vm.instructionPointer]->run();
-        if (DEBUG_I) {
-            cout << "curr pointer [" << vm.instructionPointer << "], regs a[" << vm.registers[0] << "] b[" << vm.registers[1] << "]\n";
-        }
-    }
-    cout << "Part 2 solution is " << vm.registers['b' - 'a'] << "\n";
-}
-void parseInstructions(vector<string> &lines, vector<Instruction *> &instructions, VM &vm) {
+void parseInstructions(vector<string> &lines, vector<Instruction *> &instructions) {
     {
         for (int i = 0; i < lines.size(); i++)
         {
@@ -188,22 +172,22 @@ void parseInstructions(vector<string> &lines, vector<Instruction *> &instruction
                 throw 1;
             }
             if (name.compare("hlf") == 0) {
-                instructions.push_back(new hlf(args, vm));
+                instructions.push_back(new hlf(args));
             }
             else if (name.compare("tpl") == 0) {
-                instructions.push_back(new tpl(args, vm));
+                instructions.push_back(new tpl(args));
             }
             else if (name.compare("inc") == 0) {
-                instructions.push_back(new inc(args, vm));
+                instructions.push_back(new inc(args));
             }
             else if (name.compare("jmp") == 0) {
-                instructions.push_back(new jmp(args, vm));
+                instructions.push_back(new jmp(args));
             }
             else if (name.compare("jie") == 0) {
-                instructions.push_back(new jie(args, vm));
+                instructions.push_back(new jie(args));
             }
             else if (name.compare("jio") == 0) {
-                instructions.push_back(new jio(args, vm));
+                instructions.push_back(new jio(args));
             }
         }
     }
@@ -217,10 +201,12 @@ int main()
     splitString(input, "\n", lines);
     VM vm = VM();
     vector<Instruction *> instructions;
-    parseInstructions(lines, instructions, vm);
-    doPart1(instructions, vm);
-    VM vm2 = VM();
-    instructions.clear();
-    parseInstructions(lines, instructions, vm2);
-    doPart2(instructions, vm2);
+    parseInstructions(lines, instructions);
+    runVM(instructions, vm);
+    cout << "Part 1 solution is " << vm.registers['b' - 'a'] << "\n";
+
+    vm.registers = {1,0};
+    vm.instructionPointer = 0;
+    runVM(instructions, vm);
+    cout << "Part 2 solution is " << vm.registers['b' - 'a'] << "\n";
 }
