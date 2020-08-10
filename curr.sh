@@ -16,7 +16,7 @@ fi
 echo "Compilation [$CURR_DAY] Finished"
 if [ "$DEBUG" == 1 ]
 then 
-gdb "bin/curr"
+gdb -ex run "bin/curr"
 else
 "bin/curr"
 fi
